@@ -31,7 +31,6 @@ class App:
         self.root.after(100, self.process_queue)
 
     def start_process_thread(self):
-        """Inicia a thread de trabalho para não bloquear a GUI."""
         self.button.config(state='disabled')
         self.text_area.config(state='normal')
         self.text_area.delete('1.0', tk.END)
