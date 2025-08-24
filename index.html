@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gravador e Transcritor de Áudio</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f0f2f5;
+        }
+        .container {
+            width: 90%;
+            max-width: 600px;
+            background-color: #fff;
+            padding: 2rem;
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+        h1 {
+            color: #333;
+        }
+        .controls {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 1rem;
+            margin: 1.5rem 0;
+        }
+        button {
+            padding: 10px 20px;
+            font-size: 1rem;
+            border: none;
+            border-radius: 5px;
+            background-color: #007bff;
+            color: white;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        button:disabled {
+            background-color: #aaa;
+            cursor: not-allowed;
+        }
+        button:hover:not(:disabled) {
+            background-color: #0056b3;
+        }
+        #status {
+            margin-top: 1.5rem;
+            padding: 1rem;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            background-color: #fafafa;
+            min-height: 100px;
+            text-align: left;
+            white-space: pre-wrap; /*Mantém a formatação do texto*/
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>Gravador e Transcritor</h1>
+        <div class="controls">
+            <label for="duration">Duração (segundos):</label>
+            <input type="number" id="duration" value="5" min="1" max="60" style="width: 60px; font-size: 1rem; padding: 5px;">
+        </div>
+        <button id="recordButton">Gravar e Transcrever</button>
+        <div id="status">Clique no botão para começar...</div>
+    </div>
+
+    <script>
+        //Pega os elementos da página
+        const recordButton = document.getElementById('recordButton');
+        const durationInput = document.getElementById('duration');
+        const statusDiv = document.getElementById('status');
+        
+        //Adiciona um evento de clique ao botão
+        recordButton.addEventListener('click', async () => {
+            // Desabilita o botão e prepara a interface
+            recordButton.disabled = true;
+            statusDiv.textContent = 'Aguardando permissão do microfone...';
+
+            try {
+                //1. PEDE ACESSO AO MICROFONE DO USUÁRIO
+                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                
+                //2. INICIA A GRAVAÇÃO
+                const mediaRecorder = new MediaRecorder(stream);
+                const audioChunks = [];
+                
+                //Guarda os pedaços de áudio conforme são gravados
+                mediaRecorder.addEventListener("dataavailable", event => {
+                    audioChunks.push(event.data);
+                });
+
+                //3. QUANDO A GRAVAÇÃO PARA, ENVIA O ÁUDIO PARA O SERVIDOR
+                mediaRecorder.addEventListener("stop", async () => {
+                    statusDiv.textContent = 'Gravação concluída. Enviando para o servidor...';
+                    
+                    //Cria um "Blob" (um objeto tipo arquivo) com os pedaços de áudio
+                    const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
+                    
+                    //Usa FormData para empacotar o arquivo para envio
+                    const formData = new FormData();
+                    formData.append('audio_data', audioBlob);
+                    
+                    try {
+                        //Envia o áudio para o endpoint /transcribe do Flask
+                        const response = await fetch('/transcribe', {
+                            method: 'POST',
+                            body: formData
+                        });
+                        
+                        const result = await response.json();
+
+                        //Exibe o resultado ou um erro
+                        if (response.ok) {
+                            statusDiv.textContent = `--- TRANSCRIÇÃO FINAL ---\n\n${result.transcription}`;
+                        } else {
+                            statusDiv.textContent = `ERRO: ${result.error}`;
+                        }
+                    } catch (error) {
+                        statusDiv.textContent = `Erro ao se comunicar com o servidor: ${error}`;
+                    } finally {
+                        recordButton.disabled = false; // Reabilita o botão
+                    }
+                });
+
+                //Inicia a gravação
+                mediaRecorder.start();
+                const duration = parseInt(durationInput.value, 10) * 1000; // Converte para milissegundos
+                statusDiv.textContent = `Gravando por ${duration / 1000} segundos...`;
+
+                //Agenda a parada da gravação após o tempo especificado
+                setTimeout(() => {
+                    mediaRecorder.stop();
+                }, duration);
+
+            } catch (error) {
+                //Se o usuário negar a permissão ou ocorrer outro erro
+                statusDiv.textContent = `Erro ao acessar o microfone: ${error.message}`;
+                recordButton.disabled = false;
+            }
+        });
+    </script>
+
+</body>
+</html>
