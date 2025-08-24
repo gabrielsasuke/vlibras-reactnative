@@ -70,6 +70,7 @@ def transcribe_audio():
 
 # --- PONTO DE ENTRADA DO PROGRAMA ---
 if __name__ == "__main__":
-    # Inicia o servidor Flask em modo de depuração
-    # Acesse http://127.0.0.1:5000 no seu navegador
+    #Inicia o servidor Flask em modo de depuração
+    #Acessar http://127.0.0.1:5000
     app.run(debug=True)
+
