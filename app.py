@@ -1,76 +1,63 @@
 # --------------- BIBLIOTECAS ---------------
-from flask import Flask, render_template, request, jsonify
-import os
+from flask import Flask, request, jsonify
+from flask_cors import CORS 
 import whisper
+import os
 import torch
-import numpy as np
 
-#Inicializa a aplicação Flask
+# --- CONFIGURAÇÃO DA APLICAÇÃO FLASK ---
 app = Flask(__name__)
+CORS(app)
 
-#Modelo carrega 1x
-DEVICE = "cpu"
-MODEL_SIZE = "small" #Modelo Whisper
+MODEL_SIZE = "small"  
+DEVICE = "cpu"       
 
-print(f"Carregando o modelo Whisper '{MODEL_SIZE}' no dispositivo '{DEVICE}'.")
-#Carrega o modelo na memória
-model = whisper.load_model(MODEL_SIZE, device=DEVICE)
-print("Modelo carregado com sucesso.")
+print(f"A carregar o modelo Whisper '{MODEL_SIZE}' no dispositivo '{DEVICE}'...")
+try:
+    model = whisper.load_model(MODEL_SIZE, device=DEVICE)
+    print("Modelo carregado com sucesso.")
+except Exception as e:
+    print(f"Erro ao carregar o modelo: {e}")
+    model = None
 
+# --- ROTAS DA API ---
 
-# --- ROTAS DA APLICAÇÃO ---
-
+# ROTA PRINCIPAL (PARA TESTES DE CONEXÃO)
 @app.route('/')
 def index():
-    """
-    Rota que renderiza a interface web (o arquivo index.html)
-    """
-    #O Flask procura automaticamente por este arquivo na pasta 'templates'
-    return render_template('index.html')
+    return jsonify({"message": "Servidor de transcrição está no ar."})
 
-
+# ROTA DE TRANSCRIÇÃO
 @app.route('/transcribe', methods=['POST'])
 def transcribe_audio():
-    """
-    Rota que recebe o áudio gravado pelo navegador, processa com o Whisper
-    e retorna a transcrição
-    """
-    #Verifica se um arquivo de áudio foi enviado na requisição
+    if model is None:
+        return jsonify({"error": "Modelo Whisper não foi carregado corretamente."}), 500
+
     if 'audio_data' not in request.files:
-        return jsonify({'error': 'Nenhum arquivo de áudio encontrado'}), 400
+        return jsonify({"error": "Nenhum ficheiro de áudio encontrado no pedido."}), 400
 
     audio_file = request.files['audio_data']
-    
-    #Nome de arquivo temporário para salvar o áudio recebido
-    temp_filename = "temp_recording.wav"
-    
+    filename = "temp_recording.m4a"  
+    filepath = os.path.join(os.getcwd(), filename)
+
     try:
-        #Salva o arquivo de áudio no disco
-        audio_file.save(temp_filename)
+        audio_file.save(filepath)
+        print(f"Ficheiro de áudio salvo em: {filepath}")
 
-        print("Arquivo de áudio recebido. Transcrevendo...")
-
-        #Executa a transcrição usando o modelo já carregado
-        result = model.transcribe(temp_filename, language="pt")
+        print("A iniciar a transcrição...")
+        result = model.transcribe(filepath, language="pt")
         transcribed_text = result['text']
+        print(f"Transcrição concluída: {transcribed_text}")
 
-        print(f"Transcrição: {transcribed_text}")
-
-        #Retorna o texto transrito em formato JSON para o frontend
-        return jsonify({'transcription': transcribed_text})
+        return jsonify({"transcription": transcribed_text})
 
     except Exception as e:
-        #Em caso de erro, retorna uma mensagem de erro
-        return jsonify({'error': str(e)}), 500
+        print(f"Ocorreu um erro durante a transcrição: {e}")
+        return jsonify({"error": str(e)}), 500
     finally:
-        #Garante que o arquivo temporário seja sempre deletado, mesmo se ocorrer um erro
-        if os.path.exists(temp_filename):
-            os.remove(temp_filename)
+        if os.path.exists(filepath):
+            os.remove(filepath)
 
-
-# --- PONTO DE ENTRADA DO PROGRAMA ---
-if __name__ == "__main__":
-    #Inicia o servidor Flask em modo de depuração
-    #Acessar http://127.0.0.1:5000
-    app.run(debug=True)
-
+# --- PONTO DE ENTRADA PRINCIPAL ---
+if __name__ == '__main__':
+    app.run(host='0.0.0.0', port=5000, debug=True)
