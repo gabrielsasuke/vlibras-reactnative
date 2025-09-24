@@ -15,3 +15,11 @@ A proposta do projeto é facilitar o ensino de pessoas com deficiência auditiva
 - Modelo 3D que transforma texto em Libras.
 - Criação da GUI.
 - Coleta de dados.
+
+# Ferramentas:
+
+- Flask.
+- Flask CORS.
+- OpenAI Whisper.
+- Torch.
+- NGrok.
