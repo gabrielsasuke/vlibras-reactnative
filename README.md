@@ -18,8 +18,13 @@ A proposta do projeto é facilitar o ensino de pessoas com deficiência auditiva
 
 # Ferramentas:
 
-- Flask.
-- Flask CORS.
-- OpenAI Whisper.
-- Torch.
-- NGrok.
+- Flask (3.1.2)
+- Flask CORS (6.0.1)
+- OpenAI Whisper (20240930)
+- Torch (2.7.1)
+- NGrok
+- Node.js (22.19.0)
+- Python (3.11.9)
+- Git
+
+
