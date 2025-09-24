@@ -16,7 +16,7 @@ A proposta do projeto é facilitar o ensino de pessoas com deficiência auditiva
 - Criação da GUI.
 - Coleta de dados.
 
-# Ferramentas:
+## Ferramentas:
 
 - Flask (3.1.2)
 - Flask CORS (6.0.1)
@@ -26,5 +26,8 @@ A proposta do projeto é facilitar o ensino de pessoas com deficiência auditiva
 - Node.js (22.19.0)
 - Python (3.11.9)
 - Git
+- Expo-AV
+- Expo-File-System
+- Expo-Video
 
 
