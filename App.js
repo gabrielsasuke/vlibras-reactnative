@@ -6,7 +6,7 @@ import {
 } from 'react-native';
 import { Audio } from 'expo-av';
 
-const SERVER_IP = 'https://veridical-unbecomingly-adriel.ngrok-free.dev'; // Substitua pelo seu endereço ngrok
+const SERVER_IP = 'https://veridical-unbecomingly-adriel.ngrok-free.dev';
 
 const TRANSLATOR_WEB_PAGE_URL = 'https://gabrielsasuke.github.io/tcc/tradutor_web.html';
 
