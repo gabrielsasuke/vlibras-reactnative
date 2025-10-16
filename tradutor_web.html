@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tradutor VLibras</title>
+    <style>
+        body, html {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            width: 100%;
+            overflow: hidden;
+            background-color: #f0f2f5;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-family: sans-serif;
+            color: #555;
+        }
+        #message {
+            text-align: center;
+            padding: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div id="message">
+        <h1>Tradutor de Libras</h1>
+        <p>A carregar o avatar 3D. Por favor, aguarde...</p>
+    </div>
+
+    <!-- Script oficial do VLibras -->
+    <div vw class="enabled">
+        <div vw-access-button class="active"></div>
+        <div vw-plugin-wrapper>
+            <div class="vw-plugin-top-wrapper"></div>
+        </div>
+    </div>
+    <script src="https://vlibras.gov.br/app/vlibras-plugin.js"></script>
+    <script>
+        // Inicializa o widget do VLibras
+        new window.VLibras.Widget({ 
+            rootPath: '/app',
+            personalization: 'https://vlibras.gov.br/config/default_logo.json'
+        });
+
+        // Lógica para pegar o texto da URL e traduzir
+        document.addEventListener("DOMContentLoaded", () => {
+            // Pega os parâmetros da URL
+            const urlParams = new URLSearchParams(window.location.search);
+            const textoParaTraduzir = urlParams.get('texto');
+
+            if (textoParaTraduzir) {
+                // Decodifica o texto para lidar com espaços e caracteres especiais
+                const textoDecodificado = decodeURIComponent(textoParaTraduzir);
+
+                let attempts = 0;
+                const maxAttempts = 40; // Espera até 20 segundos
+                
+                // Verifica repetidamente até que a função de tradução esteja pronta
+                const interval = setInterval(() => {
+                    if (window.vw && window.vw.widget && typeof window.vw.widget.translate === 'function') {
+                        clearInterval(interval);
+                        document.getElementById('message').style.display = 'none'; // Esconde a mensagem
+                        // Executa a tradução
+                        window.vw.widget.translate(textoDecodificado);
+                    } else {
+                        attempts++;
+                        if (attempts >= maxAttempts) {
+                            clearInterval(interval);
+                            document.getElementById('message').innerHTML = '<h1>Erro</h1><p>O tradutor do VLibras não conseguiu carregar. Por favor, tente novamente.</p>';
+                        }
+                    }
+                }, 500);
+            } else {
+                 document.getElementById('message').innerHTML = '<h1>Bem-vindo</h1><p>Nenhum texto foi fornecido para tradução.</p>';
+            }
+        });
+    </script>
+</body>
+</html>
