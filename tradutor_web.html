@@ -39,7 +39,6 @@
     </div>
     <script src="https://vlibras.gov.br/app/vlibras-plugin.js"></script>
     <script>
-        // Inicializa o widget do VLibras
         new window.VLibras.Widget({ 
             rootPath: '/app',
             personalization: 'https://vlibras.gov.br/config/default_logo.json'
@@ -52,13 +51,11 @@
             const textoParaTraduzir = urlParams.get('texto');
 
             if (textoParaTraduzir) {
-                // Decodifica o texto para lidar com espaços e caracteres especiais
                 const textoDecodificado = decodeURIComponent(textoParaTraduzir);
 
                 let attempts = 0;
-                const maxAttempts = 40; // Espera até 20 segundos
+                const maxAttempts = 40;
                 
-                // Verifica repetidamente até que a função de tradução esteja pronta
                 const interval = setInterval(() => {
                     if (window.vw && window.vw.widget && typeof window.vw.widget.translate === 'function') {
                         clearInterval(interval);

@@ -8,7 +8,7 @@ import { Audio } from 'expo-av';
 
 const SERVER_IP = 'https://veridical-unbecomingly-adriel.ngrok-free.dev';
 
-const TRANSLATOR_WEB_PAGE_URL = 'https://gabrielsasuke.github.io/tcc/tradutor_web.html';
+const TRANSLATOR_WEB_PAGE_URL = 'https://gabrielsasuke.github.io/vlibras-reactnative/tradutor_web.html';
 
 export default function App() {
   const [mode, setMode] = useState('transcribe');
