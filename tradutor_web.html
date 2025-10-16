@@ -26,15 +26,19 @@
         h1 {
             font-size: 1.5em;
         }
+        p {
+            font-size: 1.1em;
+            line-height: 1.5;
+        }
     </style>
 </head>
 <body>
     <div id="message">
         <h1>Tradutor de Libras</h1>
-        <p>A carregar o avatar 3D. Por favor, aguarde...</p>
+        <p>A carregar... Por favor, aguarde.</p>
     </div>
 
-    <!-- Estrutura HTML oficial do VLibras -->
+    <!-- Estrutura HTML oficial do VLibras. O botão de acesso fica visível para o utilizador. -->
     <div vw class="enabled">
         <div vw-access-button class="active"></div>
         <div vw-plugin-wrapper>
@@ -46,48 +50,44 @@
     <script src="https://vlibras.gov.br/app/vlibras-plugin.js"></script>
     
     <script>
-        // --- CORREÇÃO: Usar window.onload ---
-        // Este evento espera que todos os recursos, incluindo o script do VLibras,
-        // sejam completamente carregados antes de executar o nosso código.
         window.onload = () => {
-            console.log("Página e todos os recursos carregados. A inicializar o widget.");
+            console.log("Página carregada. A inicializar o widget.");
             
             // Inicializa o widget do VLibras
             new window.VLibras.Widget('https://vlibras.gov.br/config/default_logo.json');
             
             const urlParams = new URLSearchParams(window.location.search);
             const textoParaTraduzir = urlParams.get('texto');
+            const messageElement = document.getElementById('message');
 
             if (textoParaTraduzir) {
                 const textoDecodificado = decodeURIComponent(textoParaTraduzir);
                 console.log("Texto encontrado na URL:", textoDecodificado);
+                messageElement.innerHTML = '<h1>Quase pronto!</h1><p>Clique no ícone azul de Libras no canto da tela para carregar o tradutor e iniciar a tradução.</p>';
 
                 let attempts = 0;
-                const maxAttempts = 60; // Espera até 30 segundos
+                const maxAttempts = 120; 
 
                 const interval = setInterval(() => {
-                    // Verifica repetidamente se a função de tradução está pronta
                     if (window.vw && window.vw.widget && typeof window.vw.widget.translate === 'function') {
                         clearInterval(interval);
-                        console.log("Widget pronto! A executar a tradução.");
+                        console.log("Widget ativado pelo utilizador! A executar a tradução.");
                         
-                        document.getElementById('message').style.display = 'none';
+                        messageElement.style.display = 'none'; // Esconde a mensagem
                         
-                        // Executa a tradução do texto
                         window.vw.widget.translate(textoDecodificado);
                     } else {
                         attempts++;
-                        console.log(`Tentativa ${attempts}: Widget ainda não está pronto...`);
                         if (attempts >= maxAttempts) {
                             clearInterval(interval);
-                            console.error("Erro: O widget do VLibras não conseguiu inicializar a tempo.");
-                            document.getElementById('message').innerHTML = '<h1>Erro</h1><p>O tradutor do VLibras não conseguiu carregar. Por favor, verifique a sua conexão e tente novamente.</p>';
+                            console.error("Erro: O utilizador não ativou o widget a tempo.");
+                            messageElement.innerHTML = '<h1>Tempo esgotado</h1><p>O widget não foi ativado. Por favor, recarregue a página e tente novamente.</p>';
                         }
                     }
                 }, 500);
             } else {
                 console.log("Nenhum texto encontrado na URL.");
-                document.getElementById('message').innerHTML = '<h1>Bem-vindo</h1><p>Nenhum texto foi fornecido para tradução.</p>';
+                messageElement.innerHTML = '<h1>Bem-vindo</h1><p>Nenhum texto foi fornecido para tradução.</p>';
             }
         };
     </script>
