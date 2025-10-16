@@ -46,10 +46,13 @@
     <script src="https://vlibras.gov.br/app/vlibras-plugin.js"></script>
     
     <script>
-        // Lógica de inicialização e tradução
-        document.addEventListener("DOMContentLoaded", () => {
-            console.log("Página carregada. A inicializar o widget do VLibras.");
+        // --- CORREÇÃO: Usar window.onload ---
+        // Este evento espera que todos os recursos, incluindo o script do VLibras,
+        // sejam completamente carregados antes de executar o nosso código.
+        window.onload = () => {
+            console.log("Página e todos os recursos carregados. A inicializar o widget.");
             
+            // Inicializa o widget do VLibras
             new window.VLibras.Widget('https://vlibras.gov.br/config/default_logo.json');
             
             const urlParams = new URLSearchParams(window.location.search);
@@ -60,14 +63,15 @@
                 console.log("Texto encontrado na URL:", textoDecodificado);
 
                 let attempts = 0;
-                const maxAttempts = 60; // Aumenta o tempo de espera para 30 segundos
+                const maxAttempts = 60; // Espera até 30 segundos
 
                 const interval = setInterval(() => {
+                    // Verifica repetidamente se a função de tradução está pronta
                     if (window.vw && window.vw.widget && typeof window.vw.widget.translate === 'function') {
-                        clearInterval(interval); // Para a verificação
+                        clearInterval(interval);
                         console.log("Widget pronto! A executar a tradução.");
                         
-                        document.getElementById('message').style.display = 'none'; // Esconde a mensagem de "A carregar"
+                        document.getElementById('message').style.display = 'none';
                         
                         // Executa a tradução do texto
                         window.vw.widget.translate(textoDecodificado);
@@ -85,7 +89,7 @@
                 console.log("Nenhum texto encontrado na URL.");
                 document.getElementById('message').innerHTML = '<h1>Bem-vindo</h1><p>Nenhum texto foi fornecido para tradução.</p>';
             }
-        });
+        };
     </script>
 </body>
 </html>
