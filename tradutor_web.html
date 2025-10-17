@@ -2,175 +2,256 @@
 <html lang="pt-BR">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>VLibras Demo — Texto para Libras (3D)</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>VLibras Demo — Texto para Libras</title>
   <style>
-    body {
-      font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
-      padding: 24px;
-      background: #f7f7fb;
-      color: #111;
+    * {
       margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #f0f2f5;
+      color: #333;
+      line-height: 1.6;
+      padding: 20px;
       min-height: 100vh;
-      display: flex;
-      justify-content: center;
-      align-items: flex-start;
     }
+
+    .container {
+      max-width: 100%;
+      margin: 0 auto;
+    }
+
+    .header {
+      text-align: center;
+      margin-bottom: 30px;
+    }
+
+    .header h1 {
+      font-size: 24px;
+      color: #2c3e50;
+      margin-bottom: 8px;
+    }
+
+    .header p {
+      color: #7f8c8d;
+      font-size: 16px;
+    }
+
     .card {
-      background: #fff;
-      border-radius: 12px;
-      padding: 18px;
-      box-shadow: 0 6px 18px rgba(20,20,40,0.06);
-      max-width: 820px;
-      width: 100%;
-      margin-top: 16px;
-      padding-bottom: 160px;
+      background: white;
+      border-radius: 16px;
+      padding: 24px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      margin-bottom: 20px;
     }
+
+    .textarea-container {
+      position: relative;
+      margin-bottom: 20px;
+    }
+
     textarea {
       width: 100%;
-      min-height: 140px;
-      resize: vertical;
-      padding: 10px;
-      font-size: 15px;
-      border-radius: 8px;
-      border: 1px solid #ddd;
-    }
-    .controls {
-      display: flex;
-      gap: 10px;
-      margin-top: 12px;
-      align-items: center;
-    }
-    button {
-      padding: 10px 14px;
-      border-radius: 8px;
-      border: none;
-      cursor: pointer;
-      font-weight: 600;
-      background: #0066cc;
-      color: #fff;
-    }
-    #status {
-      font-size: 13px;
-      color: #555;
-      margin-left: 8px;
-    }
-
-    /* Modal/Popup styles */
-    .modal-overlay {
-      position: fixed;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      background: rgba(0, 0, 0, 0.5);
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      z-index: 1000;
-    }
-
-    .modal-content {
-      background: white;
-      padding: 30px;
+      min-height: 150px;
+      padding: 16px;
+      border: 2px solid #e1e8ed;
       border-radius: 12px;
-      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
-      max-width: 600px;
-      width: 90%;
-      max-height: 80vh;
-      overflow-y: auto;
-      position: relative;
-    }
-
-    .modal-text {
       font-size: 16px;
-      line-height: 1.6;
-      margin-bottom: 20px;
-      padding: 15px;
-      background: #f9f9f9;
-      border-radius: 8px;
-      border: 1px solid #eee;
-      cursor: text;
-      user-select: text;
+      font-family: inherit;
+      resize: vertical;
+      background: #fafbfc;
+      transition: border-color 0.3s;
     }
 
-    .modal-close {
-      position: absolute;
-      top: 15px;
-      right: 15px;
-      background: #ff4444;
+    textarea:focus {
+      outline: none;
+      border-color: #3498db;
+      background: white;
+    }
+
+    .char-count {
+      text-align: right;
+      font-size: 14px;
+      color: #95a5a6;
+      margin-top: 8px;
+    }
+
+    .button {
+      width: 100%;
+      padding: 16px;
+      background: #3498db;
       color: white;
       border: none;
-      border-radius: 50%;
-      width: 30px;
-      height: 30px;
+      border-radius: 12px;
+      font-size: 18px;
+      font-weight: 600;
       cursor: pointer;
-      font-size: 16px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
+      transition: background 0.3s;
+      margin-bottom: 12px;
     }
 
-    .modal-actions {
-      display: flex;
-      gap: 10px;
-      justify-content: flex-end;
+    .button:hover {
+      background: #2980b9;
+    }
+
+    .button:active {
+      transform: scale(0.98);
+    }
+
+    .button-secondary {
+      background: #95a5a6;
+    }
+
+    .button-secondary:hover {
+      background: #7f8c8d;
+    }
+
+    .instructions {
+      background: #e8f4fd;
+      border: 1px solid #3498db;
+      border-radius: 12px;
+      padding: 16px;
       margin-top: 20px;
+      font-size: 14px;
     }
 
-    .modal-actions button {
-      padding: 8px 16px;
-      border-radius: 6px;
-      border: none;
-      cursor: pointer;
-      font-weight: 500;
+    .instructions h3 {
+      color: #2980b9;
+      margin-bottom: 8px;
     }
 
-    .btn-secondary {
-      background: #666;
+    .instructions ol {
+      padding-left: 20px;
     }
 
-    .btn-primary {
-      background: #0066cc;
+    .instructions li {
+      margin-bottom: 8px;
+    }
+
+    .status {
+      text-align: center;
+      padding: 12px;
+      margin: 10px 0;
+      border-radius: 8px;
+      font-size: 14px;
+    }
+
+    .status.loading {
+      background: #fff3cd;
+      color: #856404;
+      border: 1px solid #ffeaa7;
+    }
+
+    .status.success {
+      background: #d1ecf1;
+      color: #0c5460;
+      border: 1px solid #bee5eb;
+    }
+
+    .status.error {
+      background: #f8d7da;
+      color: #721c24;
+      border: 1px solid #f5c6cb;
+    }
+
+    .translation-area {
+      background: #f8f9fa;
+      border: 2px dashed #bdc3c7;
+      border-radius: 12px;
+      padding: 20px;
+      margin-top: 20px;
+      min-height: 120px;
+      font-size: 16px;
+      line-height: 1.5;
+      user-select: text;
+      cursor: text;
+    }
+
+    .translation-area.highlight {
+      background: #fff3cd;
+      border-color: #ffc107;
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0% { border-color: #ffc107; }
+      50% { border-color: #3498db; }
+      100% { border-color: #ffc107;
+      }
     }
 
     .hidden {
       display: none;
     }
+
+    .spinner {
+      border: 3px solid #f3f3f3;
+      border-top: 3px solid #3498db;
+      border-radius: 50%;
+      width: 20px;
+      height: 20px;
+      animation: spin 1s linear infinite;
+      display: inline-block;
+      margin-right: 10px;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
   </style>
 </head>
 <body>
-  <div class="card">
-    <h1>VLibras — Converter texto para Libras</h1>
+  <div class="container">
+    <div class="header">
+      <h1>📝 Tradutor para Libras</h1>
+      <p>Digite seu texto e traduza para Língua Brasileira de Sinais</p>
+    </div>
 
-    <textarea id="txt" placeholder="Digite aqui o texto que deseja traduzir para Libras...">
-Olá! Este é um teste de tradução para Libras usando o widget VLibras.</textarea>
+    <div class="card">
+      <div class="textarea-container">
+        <textarea 
+          id="textInput" 
+          placeholder="Digite ou cole aqui o texto que deseja traduzir para Libras..."
+          maxlength="500"
+        >Olá! Este é um teste de tradução para Libras usando o widget VLibras. Como você está?</textarea>
+        <div class="char-count">
+          <span id="charCount">0</span>/500 caracteres
+        </div>
+      </div>
 
-    <div class="controls">
-      <button id="btnTranslate">Traduzir para Libras</button>
-      <div id="status">Carregando VLibras...</div>
+      <button id="translateBtn" class="button">
+        <span id="btnText">👆 Traduzir para Libras</span>
+        <span id="btnLoading" class="hidden">
+          <div class="spinner"></div>Processando...
+        </span>
+      </button>
+
+      <div id="statusArea" class="status loading">
+        Carregando VLibras...
+      </div>
+
+      <div id="translationArea" class="translation-area hidden">
+        O texto traduzido aparecerá aqui. Selecione este texto com o dedo e clique no botão do VLibras.
+      </div>
+
+      <div class="instructions">
+        <h3>📋 Como usar:</h3>
+        <ol>
+          <li>Digite seu texto acima</li>
+          <li>Clique em "Traduzir para Libras"</li>
+          <li>Selecione o texto na área abaixo com o dedo (toque longo e arraste)</li>
+          <li>Clique no botão flutuante do VLibras (bonequinho no canto da tela)</li>
+          <li>Aguarde a tradução em Libras 3D</li>
+        </ol>
+      </div>
     </div>
   </div>
 
-  <!-- Modal/Popup para tradução -->
-  <div id="translationModal" class="modal-overlay hidden">
-    <div class="modal-content">
-      <button class="modal-close" id="modalClose">×</button>
-      <h2>Texto para Tradução em Libras</h2>
-      <div id="modalText" class="modal-text">
-        O texto aparecerá aqui...
-      </div>
-      <div class="modal-actions">
-        <button id="btnTranslateInModal" class="btn-primary">Traduzir este texto</button>
-        <button id="btnCloseModal" class="btn-secondary">Fechar</button>
-      </div>
-      <div id="modalStatus" style="font-size: 13px; color: #666; margin-top: 10px;">
-        Clique em "Traduzir este texto" e depois selecione o texto acima com o mouse
-      </div>
-    </div>
-  </div>
-
-  <!-- Estrutura padrão do widget -->
   <div vw class="enabled">
     <div vw-access-button class="active"></div>
     <div vw-plugin-wrapper>
@@ -178,140 +259,126 @@ Olá! Este é um teste de tradução para Libras usando o widget VLibras.</texta
     </div>
   </div>
 
-  <!-- Script oficial do VLibras -->
   <script src="https://vlibras.gov.br/app/vlibras-plugin.js"></script>
-
   <script>
-    let vlibrasWidget = null;
+    const textInput = document.getElementById('textInput');
+    const translateBtn = document.getElementById('translateBtn');
+    const btnText = document.getElementById('btnText');
+    const btnLoading = document.getElementById('btnLoading');
+    const statusArea = document.getElementById('statusArea');
+    const translationArea = document.getElementById('translationArea');
+    const charCount = document.getElementById('charCount');
 
-    (function initVLibras() {
-      try {
-        if (window.VLibras && typeof window.VLibras.Widget === 'function') {
-          vlibrasWidget = new window.VLibras.Widget('https://vlibras.gov.br/app');
-          document.getElementById('status').innerText = 'VLibras carregado. Pronto.';
-        } else {
-          document.getElementById('status').innerText = 'Aguardando carregamento do plugin...';
-          let retries = 0;
-          const int = setInterval(function() {
-            if (window.VLibras && typeof window.VLibras.Widget === 'function') {
-              vlibrasWidget = new window.VLibras.Widget('https://vlibras.gov.br/app');
-              document.getElementById('status').innerText = 'VLibras carregado. Pronto.';
-              clearInterval(int);
-            } else {
-              retries++;
-              document.getElementById('status').innerText = 'Aguardando plugin... (' + retries + ')';
-              if (retries > 20) {
-                clearInterval(int);
-                document.getElementById('status').innerText = 'Falha ao carregar plugin.';
-              }
-            }
-          }, 500);
+    let vlibrasLoaded = false;
+    let currentText = '';
+
+    document.addEventListener('DOMContentLoaded', function() {
+      updateCharCount();
+      initVLibras();
+    });
+
+    textInput.addEventListener('input', updateCharCount);
+
+    function updateCharCount() {
+      const count = textInput.value.length;
+      charCount.textContent = count;
+      charCount.style.color = count > 450 ? '#e74c3c' : '#95a5a6';
+    }
+
+    function initVLibras() {
+      if (window.VLibras && typeof window.VLibras.Widget === 'function') {
+        try {
+          new window.VLibras.Widget('https://vlibras.gov.br/app');
+          vlibrasLoaded = true;
+          updateStatus('success', '✅ VLibras carregado! Pronto para traduzir.');
+        } catch (error) {
+          console.error('Erro ao inicializar VLibras:', error);
+          updateStatus('error', '❌ Erro ao carregar VLibras. Recarregue a página.');
         }
-      } catch (e) {
-        console.error('Erro inicializando VLibras:', e);
-        document.getElementById('status').innerText = 'Erro inicializando VLibras.';
+      } else {
+        setTimeout(initVLibras, 1000);
       }
-    })();
+    }
 
-    const translationModal = document.getElementById('translationModal');
-    const modalText = document.getElementById('modalText');
-    const modalClose = document.getElementById('modalClose');
-    const btnCloseModal = document.getElementById('btnCloseModal');
-    const btnTranslateInModal = document.getElementById('btnTranslateInModal');
-
-    document.getElementById('btnTranslate').addEventListener('click', function() {
-      const txt = document.getElementById('txt').value.trim();
-      if (!txt) {
-        alert('Digite algum texto para traduzir.');
+    translateBtn.addEventListener('click', function() {
+      const text = textInput.value.trim();
+      
+      if (!text) {
+        alert('Por favor, digite algum texto para traduzir.');
+        textInput.focus();
         return;
       }
-      
-      modalText.textContent = txt;
 
-      translationModal.classList.remove('hidden');
-      
-      document.getElementById('status').innerText = 'Modal aberto - clique em "Traduzir este texto"';
+      if (!vlibrasLoaded) {
+        alert('Aguarde o VLibras carregar completamente.');
+        return;
+      }
+
+      currentText = text;
+      showTranslationArea(text);
     });
 
-    modalClose.addEventListener('click', closeModal);
-    btnCloseModal.addEventListener('click', closeModal);
-
-    function closeModal() {
-      translationModal.classList.add('hidden');
-      document.getElementById('status').innerText = 'VLibras carregado. Pronto.';
-    }
-
-    btnTranslateInModal.addEventListener('click', function() {
-      openVLibrasWidget();
+    function showTranslationArea(text) {
+      setButtonLoading(true);
+      updateStatus('loading', '⏳ Preparando tradução...');
 
       setTimeout(() => {
-        selectTextForTranslation(modalText);
-      }, 500);
-    });
-
-    function openVLibrasWidget() {
-      const accessButton = document.querySelector('[vw-access-button]');
-      if (accessButton) {
-        // Abre o widget VLibras se não estiver aberto
-        const widgetWrapper = document.querySelector('[vw-plugin-wrapper]');
-        const isOpen = widgetWrapper && getComputedStyle(widgetWrapper).display !== 'none';
+        translationArea.textContent = text;
+        translationArea.classList.remove('hidden');
         
-        if (!isOpen) {
-          accessButton.click();
-        }
+        translationArea.classList.add('highlight');
+        
+        updateStatus('success', '✅ Texto pronto! Selecione o texto acima com o dedo e clique no botão do VLibras.');
+        setButtonLoading(false);
+
+        translationArea.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+        setTimeout(() => {
+          translationArea.classList.remove('highlight');
+        }, 3000);
+      }, 1000);
+    }
+
+    function setButtonLoading(loading) {
+      if (loading) {
+        btnText.classList.add('hidden');
+        btnLoading.classList.remove('hidden');
+        translateBtn.disabled = true;
+      } else {
+        btnText.classList.remove('hidden');
+        btnLoading.classList.add('hidden');
+        translateBtn.disabled = false;
       }
     }
 
-    function selectTextForTranslation(element) {
-      if (!element) return;
-
-      const selection = window.getSelection();
-      selection.removeAllRanges();
-
-      const range = document.createRange();
-      range.selectNodeContents(element);
-      selection.addRange(range);
-
-      const events = ['mouseup', 'click', 'select'];
-      
-      events.forEach(eventType => {
-        const event = new MouseEvent(eventType, {
-          view: window,
-          bubbles: true,
-          cancelable: true
-        });
-        element.dispatchEvent(event);
-      });
-
-      // Dispara evento de seleção
-      document.dispatchEvent(new Event('selectionchange'));
-
-      // Atualiza status
-      document.getElementById('modalStatus').innerHTML = 
-        '<span style="color: green;">✓ Texto selecionado! O VLibras deve estar traduzindo agora.</span><br>' +
-        'Se não funcionar automaticamente, mantenha o texto selecionado e clique no botão do VLibras.';
-
-      // Limpa a seleção após 10 segundos
-      setTimeout(() => {
-        selection.removeAllRanges();
-      }, 10000);
+    function updateStatus(type, message) {
+      statusArea.textContent = message;
+      statusArea.className = 'status ' + type;
     }
 
-    document.addEventListener('keydown', function(e) {
-      if (e.key === 'Escape' && !translationModal.classList.contains('hidden')) {
-        closeModal();
+    let checkCount = 0;
+    const checkVLibras = setInterval(() => {
+      if (document.querySelector('[vw-access-button]')) {
+        vlibrasLoaded = true;
+        updateStatus('success', '✅ VLibras carregado! Pronto para traduzir.');
+        clearInterval(checkVLibras);
       }
+      checkCount++;
+      if (checkCount > 10) {
+        clearInterval(checkVLibras);
+        updateStatus('error', '⚠️ VLibras não carregou. Verifique sua conexão.');
+      }
+    }, 1000);
+
+    translationArea.addEventListener('touchstart', function() {
+      this.classList.add('highlight');
     });
 
-    translationModal.addEventListener('click', function(e) {
-      if (e.target === translationModal) {
-        closeModal();
-      }
+    translationArea.addEventListener('touchend', function() {
+      setTimeout(() => this.classList.remove('highlight'), 2000);
     });
 
-    modalText.addEventListener('click', function() {
-      selectTextForTranslation(this);
-    });
+    textInput.focus();
   </script>
 </body>
 </html>
