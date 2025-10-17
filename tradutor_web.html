@@ -82,7 +82,6 @@
     .button {
       width: 100%;
       padding: 16px;
-      background: #3498db;
       color: white;
       border: none;
       border-radius: 12px;
@@ -92,12 +91,12 @@
       margin-bottom: 12px;
     }
 
-    .button:active {
-      transform: scale(0.98);
+    .button-lock {
+      background: #3498db;
     }
 
-    .button-secondary {
-      background: #95a5a6;
+    .button-unlock {
+      background: #28a745;
     }
 
     .static-text {
@@ -126,28 +125,6 @@
 
     .hidden {
       display: none;
-    }
-
-    .instructions {
-      background: #e8f4fd;
-      border: 1px solid #3498db;
-      border-radius: 12px;
-      padding: 16px;
-      margin-top: 20px;
-      font-size: 14px;
-    }
-
-    .instructions h3 {
-      color: #2980b9;
-      margin-bottom: 8px;
-    }
-
-    .instructions ol {
-      padding-left: 20px;
-    }
-
-    .instructions li {
-      margin-bottom: 8px;
     }
 
     .status {
@@ -181,28 +158,15 @@
         </div>
       </div>
 
-      <button id="generateBtn" class="button">
-        🔒 Travar texto e gerar bloco para tradução
+      <button id="toggleBtn" class="button button-lock">
+        🔒 Travar texto para tradução
       </button>
 
       <div id="statusArea" class="status">
-        VLibras carregado. Digite seu texto e clique no botão acima.
+        VLibras carregado. Digite seu texto e clique para travar.
       </div>
 
       <div id="staticText" class="static-text hidden">
-      </div>
-
-      <div class="instructions">
-        <h3>📋 Como usar:</h3>
-        <ol>
-          <li>Digite ou cole seu texto na área acima</li>
-          <li>Clique em "Travar texto e gerar bloco para tradução"</li>
-          <li>O texto ficará travado e aparecerá em um bloco verde abaixo</li>
-          <li>Toque no texto verde para selecioná-lo</li>
-          <li>Clique no botão flutuante do VLibras (bonequinho)</li>
-          <li>A tradução em Libras 3D começará automaticamente</li>
-        </ol>
-        <p><strong>Dica:</strong> Toque longo no texto verde e arraste para selecionar tudo</p>
       </div>
     </div>
   </div>
@@ -217,10 +181,12 @@
   <script src="https://vlibras.gov.br/app/vlibras-plugin.js"></script>
   <script>
     const textInput = document.getElementById('textInput');
-    const generateBtn = document.getElementById('generateBtn');
+    const toggleBtn = document.getElementById('toggleBtn');
     const statusArea = document.getElementById('statusArea');
     const staticText = document.getElementById('staticText');
     const charCount = document.getElementById('charCount');
+
+    let isLocked = false;
 
     document.addEventListener('DOMContentLoaded', function() {
       updateCharCount();
@@ -242,30 +208,42 @@
       }
     }
 
-    generateBtn.addEventListener('click', function() {
-      const text = textInput.value.trim();
-      
-      if (!text) {
-        alert('Por favor, digite algum texto para traduzir.');
+    toggleBtn.addEventListener('click', function() {
+      if (!isLocked) {
+        const text = textInput.value.trim();
+        
+        if (!text) {
+          alert('Por favor, digite algum texto para traduzir.');
+          textInput.focus();
+          return;
+        }
+
+        textInput.disabled = true;
+        staticText.textContent = text;
+        staticText.classList.remove('hidden');
+        staticText.classList.add('highlight');
+        
+        statusArea.textContent = '✅ Texto travado! Toque no texto verde para selecionar e clique no VLibras.';
+        
+        toggleBtn.textContent = '🔓 Liberar texto para editar';
+        toggleBtn.className = 'button button-unlock';
+        
+        isLocked = true;
+
+        staticText.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+        setTimeout(() => {
+          staticText.classList.remove('highlight');
+        }, 4000);
+      } else {
+        textInput.disabled = false;
+        staticText.classList.add('hidden');
+        toggleBtn.textContent = '🔒 Travar texto para tradução';
+        toggleBtn.className = 'button button-lock';
+        statusArea.textContent = 'VLibras carregado. Digite seu texto e clique para travar.';
         textInput.focus();
-        return;
+        isLocked = false;
       }
-
-      textInput.disabled = true;
-      staticText.textContent = text;
-      staticText.classList.remove('hidden');
-      staticText.classList.add('highlight');
-      
-      statusArea.textContent = '✅ Texto travado! Toque no texto verde acima para selecionar e depois clique no botão do VLibras.';
-      
-      generateBtn.textContent = '🔓 Digite novo texto';
-      generateBtn.style.background = '#95a5a6';
-
-      staticText.scrollIntoView({ behavior: 'smooth', block: 'center' });
-
-      setTimeout(() => {
-        staticText.classList.remove('highlight');
-      }, 4000);
     });
 
     staticText.addEventListener('click', function() {
@@ -277,15 +255,6 @@
       
       this.classList.add('highlight');
       setTimeout(() => this.classList.remove('highlight'), 2000);
-    });
-
-    generateBtn.addEventListener('dblclick', function() {
-      textInput.disabled = false;
-      staticText.classList.add('hidden');
-      generateBtn.textContent = '🔒 Travar texto e gerar bloco para tradução';
-      generateBtn.style.background = '#3498db';
-      statusArea.textContent = 'VLibras carregado. Digite seu texto e clique no botão acima.';
-      textInput.focus();
     });
   </script>
 </body>
