@@ -55,16 +55,87 @@
       color: #555;
       margin-left: 8px;
     }
-    .hidden-translation-area {
-      position: absolute;
-      left: -9999px;
-      top: -9999px;
-      width: 1px;
-      height: 1px;
-      overflow: hidden;
+
+    /* Modal/Popup styles */
+    .modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.5);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+    }
+
+    .modal-content {
       background: white;
+      padding: 30px;
+      border-radius: 12px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+      max-width: 600px;
+      width: 90%;
+      max-height: 80vh;
+      overflow-y: auto;
+      position: relative;
+    }
+
+    .modal-text {
+      font-size: 16px;
+      line-height: 1.6;
+      margin-bottom: 20px;
+      padding: 15px;
+      background: #f9f9f9;
+      border-radius: 8px;
+      border: 1px solid #eee;
+      cursor: text;
+      user-select: text;
+    }
+
+    .modal-close {
+      position: absolute;
+      top: 15px;
+      right: 15px;
+      background: #ff4444;
+      color: white;
       border: none;
-      opacity: 0.01;
+      border-radius: 50%;
+      width: 30px;
+      height: 30px;
+      cursor: pointer;
+      font-size: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .modal-actions {
+      display: flex;
+      gap: 10px;
+      justify-content: flex-end;
+      margin-top: 20px;
+    }
+
+    .modal-actions button {
+      padding: 8px 16px;
+      border-radius: 6px;
+      border: none;
+      cursor: pointer;
+      font-weight: 500;
+    }
+
+    .btn-secondary {
+      background: #666;
+    }
+
+    .btn-primary {
+      background: #0066cc;
+    }
+
+    .hidden {
+      display: none;
     }
   </style>
 </head>
@@ -72,7 +143,8 @@
   <div class="card">
     <h1>VLibras — Converter texto para Libras</h1>
 
-    <textarea id="txt" placeholder="Digite aqui o texto que deseja traduzir para Libras..."></textarea>
+    <textarea id="txt" placeholder="Digite aqui o texto que deseja traduzir para Libras...">
+Olá! Este é um teste de tradução para Libras usando o widget VLibras.</textarea>
 
     <div class="controls">
       <button id="btnTranslate">Traduzir para Libras</button>
@@ -80,8 +152,23 @@
     </div>
   </div>
 
-  <!-- Área oculta para tradução -->
-  <textarea id="translation-area" class="hidden-translation-area" readonly></textarea>
+  <!-- Modal/Popup para tradução -->
+  <div id="translationModal" class="modal-overlay hidden">
+    <div class="modal-content">
+      <button class="modal-close" id="modalClose">×</button>
+      <h2>Texto para Tradução em Libras</h2>
+      <div id="modalText" class="modal-text">
+        O texto aparecerá aqui...
+      </div>
+      <div class="modal-actions">
+        <button id="btnTranslateInModal" class="btn-primary">Traduzir este texto</button>
+        <button id="btnCloseModal" class="btn-secondary">Fechar</button>
+      </div>
+      <div id="modalStatus" style="font-size: 13px; color: #666; margin-top: 10px;">
+        Clique em "Traduzir este texto" e depois selecione o texto acima com o mouse
+      </div>
+    </div>
+  </div>
 
   <!-- Estrutura padrão do widget -->
   <div vw class="enabled">
@@ -102,7 +189,6 @@
         if (window.VLibras && typeof window.VLibras.Widget === 'function') {
           vlibrasWidget = new window.VLibras.Widget('https://vlibras.gov.br/app');
           document.getElementById('status').innerText = 'VLibras carregado. Pronto.';
-          setupVLibrasListener();
         } else {
           document.getElementById('status').innerText = 'Aguardando carregamento do plugin...';
           let retries = 0;
@@ -110,7 +196,6 @@
             if (window.VLibras && typeof window.VLibras.Widget === 'function') {
               vlibrasWidget = new window.VLibras.Widget('https://vlibras.gov.br/app');
               document.getElementById('status').innerText = 'VLibras carregado. Pronto.';
-              setupVLibrasListener();
               clearInterval(int);
             } else {
               retries++;
@@ -128,38 +213,66 @@
       }
     })();
 
-    function setupVLibrasListener() {
-      setTimeout(() => {
-        const accessButton = document.querySelector('[vw-access-button]');
-        if (accessButton) {
-          accessButton.addEventListener('click', () => {
-            setTimeout(prepareTranslationArea, 100);
-          });
-        }
-      }, 1000);
+    const translationModal = document.getElementById('translationModal');
+    const modalText = document.getElementById('modalText');
+    const modalClose = document.getElementById('modalClose');
+    const btnCloseModal = document.getElementById('btnCloseModal');
+    const btnTranslateInModal = document.getElementById('btnTranslateInModal');
+
+    document.getElementById('btnTranslate').addEventListener('click', function() {
+      const txt = document.getElementById('txt').value.trim();
+      if (!txt) {
+        alert('Digite algum texto para traduzir.');
+        return;
+      }
+      
+      modalText.textContent = txt;
+
+      translationModal.classList.remove('hidden');
+      
+      document.getElementById('status').innerText = 'Modal aberto - clique em "Traduzir este texto"';
+    });
+
+    modalClose.addEventListener('click', closeModal);
+    btnCloseModal.addEventListener('click', closeModal);
+
+    function closeModal() {
+      translationModal.classList.add('hidden');
+      document.getElementById('status').innerText = 'VLibras carregado. Pronto.';
     }
 
-    function prepareTranslationArea() {
-      const translationArea = document.getElementById('translation-area');
-      const txt = document.getElementById('txt').value.trim();
-      
-      if (txt) {
-        translationArea.value = txt;
+    btnTranslateInModal.addEventListener('click', function() {
+      openVLibrasWidget();
+
+      setTimeout(() => {
+        selectTextForTranslation(modalText);
+      }, 500);
+    });
+
+    function openVLibrasWidget() {
+      const accessButton = document.querySelector('[vw-access-button]');
+      if (accessButton) {
+        // Abre o widget VLibras se não estiver aberto
+        const widgetWrapper = document.querySelector('[vw-plugin-wrapper]');
+        const isOpen = widgetWrapper && getComputedStyle(widgetWrapper).display !== 'none';
         
-        setTimeout(() => {
-          triggerTranslation(translationArea);
-        }, 300);
+        if (!isOpen) {
+          accessButton.click();
+        }
       }
     }
 
-    function triggerTranslation(element) {
+    function selectTextForTranslation(element) {
       if (!element) return;
 
-      element.focus();
-      element.select();
-      element.setSelectionRange(0, element.value.length);
+      const selection = window.getSelection();
+      selection.removeAllRanges();
 
-      const events = ['mouseover', 'mousedown', 'mouseup', 'click', 'select', 'focus'];
+      const range = document.createRange();
+      range.selectNodeContents(element);
+      selection.addRange(range);
+
+      const events = ['mouseup', 'click', 'select'];
       
       events.forEach(eventType => {
         const event = new MouseEvent(eventType, {
@@ -170,48 +283,34 @@
         element.dispatchEvent(event);
       });
 
+      // Dispara evento de seleção
       document.dispatchEvent(new Event('selectionchange'));
-      
-      document.getElementById('status').innerText = 'Traduzindo...';
+
+      // Atualiza status
+      document.getElementById('modalStatus').innerHTML = 
+        '<span style="color: green;">✓ Texto selecionado! O VLibras deve estar traduzindo agora.</span><br>' +
+        'Se não funcionar automaticamente, mantenha o texto selecionado e clique no botão do VLibras.';
+
+      // Limpa a seleção após 10 segundos
+      setTimeout(() => {
+        selection.removeAllRanges();
+      }, 10000);
     }
 
-    document.getElementById('btnTranslate').addEventListener('click', function(e) {
-      e.preventDefault();
-      
-      const txt = document.getElementById('txt').value.trim();
-      if (!txt) {
-        alert('Digite algum texto para traduzir.');
-        return;
-      }
-      
-      this.blur();
-      
-      openVLibrasWidget();
-    });
-
-    function openVLibrasWidget() {
-      const accessButton = document.querySelector('[vw-access-button]');
-      if (accessButton) {
-        accessButton.click();
-      } else {
-        const translationArea = document.getElementById('translation-area');
-        translationArea.value = document.getElementById('txt').value.trim();
-        triggerTranslation(translationArea);
-      }
-    }
-
-    document.addEventListener('click', function(e) {
-      if (e.target.closest('[vw-access-button]')) {
-        setTimeout(prepareTranslationArea, 200);
+    document.addEventListener('keydown', function(e) {
+      if (e.key === 'Escape' && !translationModal.classList.contains('hidden')) {
+        closeModal();
       }
     });
 
-    document.addEventListener('selectionchange', function() {
-      clearTimeout(window.__vlibras_clear_sel);
-      window.__vlibras_clear_sel = setTimeout(function() {
-        const s = window.getSelection();
-        if (s) s.removeAllRanges();
-      }, 5000);
+    translationModal.addEventListener('click', function(e) {
+      if (e.target === translationModal) {
+        closeModal();
+      }
+    });
+
+    modalText.addEventListener('click', function() {
+      selectTextForTranslation(this);
     });
   </script>
 </body>
