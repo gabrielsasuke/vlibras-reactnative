@@ -3,6 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>VLibras Demo — Texto para Libras (3D)</title>
   <style>
     body {
       font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
@@ -54,14 +55,13 @@
       color: #555;
       margin-left: 8px;
     }
-    #vlibras-temp {
-      position: fixed;
-      left: -9999px;
-      top: -9999px;
-      width: 10px;
-      height: 10px;
+    #vlibras-visible {
+      margin-top: 16px;
+      font-size: 0;
+      line-height: 0;
+      height: 1px;
       overflow: hidden;
-      white-space: pre-wrap;
+      color: transparent;
     }
   </style>
 </head>
@@ -76,9 +76,10 @@ Olá! Este é um teste de tradução para Libras usando o widget VLibras.</texta
       <button id="btnTranslate">Traduzir para Libras</button>
       <div id="status">Carregando VLibras...</div>
     </div>
+
+    <div id="vlibras-visible"></div>
   </div>
 
-  <!-- Estrutura padrão do widget -->
   <div vw class="enabled">
     <div vw-access-button class="active"></div>
     <div vw-plugin-wrapper>
@@ -86,74 +87,43 @@ Olá! Este é um teste de tradução para Libras usando o widget VLibras.</texta
     </div>
   </div>
 
-  <!-- Script oficial do VLibras -->
   <script src="https://vlibras.gov.br/app/vlibras-plugin.js"></script>
 
   <script>
     (function initVLibras() {
-      try {
+      let tries = 0;
+      const tryInit = setInterval(() => {
         if (window.VLibras && typeof window.VLibras.Widget === 'function') {
           new window.VLibras.Widget('https://vlibras.gov.br/app');
           document.getElementById('status').innerText = 'VLibras carregado. Pronto.';
-        } else {
-          document.getElementById('status').innerText = 'Aguardando carregamento do plugin...';
-          let retries = 0;
-          const int = setInterval(function() {
-            if (window.VLibras && typeof window.VLibras.Widget === 'function') {
-              new window.VLibras.Widget('https://vlibras.gov.br/app');
-              document.getElementById('status').innerText = 'VLibras carregado. Pronto.';
-              clearInterval(int);
-            } else {
-              retries++;
-              document.getElementById('status').innerText = 'Aguardando plugin... (' + retries + ')';
-              if (retries > 20) {
-                clearInterval(int);
-                document.getElementById('status').innerText = 'Falha ao carregar plugin. Verifique conexão/console.';
-              }
-            }
-          }, 500);
+          clearInterval(tryInit);
+        } else if (tries++ > 20) {
+          clearInterval(tryInit);
+          document.getElementById('status').innerText = 'Falha ao carregar plugin.';
         }
-      } catch (e) {
-        console.error('Erro inicializando VLibras:', e);
-        document.getElementById('status').innerText = 'Erro inicializando VLibras (veja console).';
-      }
+      }, 500);
     })();
 
-    function programmaticSelectAndTrigger(text) {
-      const old = document.getElementById('vlibras-temp');
-      if (old) old.remove();
-
-      const div = document.createElement('div');
-      div.id = 'vlibras-temp';
-      div.textContent = text || '';
-      document.body.appendChild(div);
-
-      const selection = window.getSelection();
-      selection.removeAllRanges();
-      const range = document.createRange();
-      range.selectNodeContents(div);
-      selection.addRange(range);
-
-      const mouseUp = new MouseEvent('mouseup', { bubbles: true, cancelable: true, view: window });
-      document.dispatchEvent(mouseUp);
-      document.dispatchEvent(new Event('selectionchange'));
-      document.getElementById('status').innerText = 'Texto selecionado — o widget deve reproduzir a tradução.';
-    }
-
-    document.getElementById('btnTranslate').addEventListener('click', function() {
+    document.getElementById('btnTranslate').addEventListener('click', () => {
       const txt = document.getElementById('txt').value.trim();
-      if (!txt) {
-        alert('Digite algum texto para traduzir.');
-        return;
-      }
-      programmaticSelectAndTrigger(txt);
-    });
+      if (!txt) return alert('Digite algum texto para traduzir.');
 
-    document.addEventListener('selectionchange', function() {
-      clearTimeout(window.__vlibras_clear_sel);
-      window.__vlibras_clear_sel = setTimeout(function() {
-        const s = window.getSelection();
-        if (s) s.removeAllRanges();
+      const area = document.getElementById('vlibras-visible');
+      area.textContent = txt;
+
+      const range = document.createRange();
+      range.selectNodeContents(area);
+      const sel = window.getSelection();
+      sel.removeAllRanges();
+      sel.addRange(range);
+
+      document.dispatchEvent(new MouseEvent('mouseup', { bubbles: true }));
+      document.dispatchEvent(new Event('selectionchange'));
+
+      document.getElementById('status').innerText = 'Traduzindo texto para Libras...';
+
+      setTimeout(() => {
+        sel.removeAllRanges();
       }, 6000);
     });
   </script>
