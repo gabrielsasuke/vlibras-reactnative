@@ -1,96 +1,134 @@
-<!DOCTYPE html>
-<html lang="pt-br">
+<!doctype html>
+<html lang="pt-BR">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tradutor VLibras</title>
-    <style>
-        body, html {
-            margin: 0;
-            padding: 0;
-            height: 100%;
-            width: 100%;
-            overflow: hidden;
-            background-color: #f0f2f5;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            color: #333;
-        }
-        #message {
-            text-align: center;
-            padding: 20px;
-            max-width: 80%;
-        }
-        h1 {
-            font-size: 1.5em;
-        }
-        p {
-            font-size: 1.1em;
-            line-height: 1.5;
-        }
-    </style>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>VLibras Demo — Texto para Libras (3D)</title>
+  <style>
+    body { font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial; padding: 24px; background:#f7f7fb; color:#111; }
+    .card { background:#fff; border-radius:12px; padding:18px; box-shadow:0 6px 18px rgba(20,20,40,0.06); max-width:820px; margin:16px auto; }
+    textarea { width:100%; min-height:140px; resize:vertical; padding:10px; font-size:15px; border-radius:8px; border:1px solid #ddd; }
+    .controls { display:flex; gap:10px; margin-top:12px; align-items:center; }
+    button { padding:10px 14px; border-radius:8px; border:none; cursor:pointer; font-weight:600; }
+    button.primary { background:#0066cc; color:#fff; }
+    button.ghost { background:#fff; color:#333; border:1px solid #ccc; }
+    #status { font-size:13px; color:#555; margin-left:8px; }
+    /* o elemento temporário fica fora da tela e invisível */
+    #vlibras-temp { position:fixed; left:-9999px; top:-9999px; width:10px; height:10px; overflow:hidden; white-space:pre-wrap; }
+  </style>
 </head>
 <body>
-    <div id="message">
-        <h1>Tradutor de Libras</h1>
-        <p>A carregar... Por favor, aguarde.</p>
+  <div class="card">
+    <h1>VLibras — Converter texto para Libras (modelo 3D)</h1>
+    <p>Digite o texto abaixo e clique em "<strong>Traduzir para Libras</strong>". O widget do VLibras será ativado e tentará reproduzir o texto com o avatar 3D.</p>
+
+    <textarea id="txt" placeholder="Digite aqui o texto que deseja traduzir para Libras...">Olá! Este é um teste de tradução para Libras usando o widget VLibras.</textarea>
+
+    <div class="controls">
+      <button id="btnTranslate" class="primary">Traduzir para Libras</button>
+      <button id="btnOpenWidget" class="ghost">Abrir/Fechar Widget</button>
+      <div id="status">Carregando VLibras...</div>
     </div>
+    <p style="margin-top:12px;color:#666;font-size:13px;">
+      Observação: se o avatar não aparecer automaticamente, abra o widget com o botão <em>Abrir/Fechar Widget</em>. Em alguns sites/páginas a detecção de seleção funciona melhor que em outras.
+    </p>
+  </div>
 
-    <!-- Estrutura HTML oficial do VLibras. O botão de acesso fica visível para o utilizador. -->
-    <div vw class="enabled">
-        <div vw-access-button class="active"></div>
-        <div vw-plugin-wrapper>
-            <div class="vw-plugin-top-wrapper"></div>
-        </div>
+  <div vw class="enabled">
+    <div vw-access-button class="active"></div>
+    <div vw-plugin-wrapper>
+      <div class="vw-plugin-top-wrapper"></div>
     </div>
-    
-    <!-- Script oficial do VLibras -->
-    <script src="https://vlibras.gov.br/app/vlibras-plugin.js"></script>
-    
-    <script>
-        window.onload = () => {
-            console.log("Página carregada. A inicializar o widget.");
-            
-            // Inicializa o widget do VLibras
-            new window.VLibras.Widget('https://vlibras.gov.br/config/default_logo.json');
-            
-            const urlParams = new URLSearchParams(window.location.search);
-            const textoParaTraduzir = urlParams.get('texto');
-            const messageElement = document.getElementById('message');
+  </div>
 
-            if (textoParaTraduzir) {
-                const textoDecodificado = decodeURIComponent(textoParaTraduzir);
-                console.log("Texto encontrado na URL:", textoDecodificado);
-                messageElement.innerHTML = '<h1>Quase pronto!</h1><p>Clique no ícone azul de Libras no canto da tela para carregar o tradutor e iniciar a tradução.</p>';
+  <!-- script oficial do VLibras (widget) -->
+  <script src="https://vlibras.gov.br/app/vlibras-plugin.js"></script>
 
-                let attempts = 0;
-                const maxAttempts = 120; 
-
-                const interval = setInterval(() => {
-                    if (window.vw && window.vw.widget && typeof window.vw.widget.translate === 'function') {
-                        clearInterval(interval);
-                        console.log("Widget ativado pelo utilizador! A executar a tradução.");
-                        
-                        messageElement.style.display = 'none'; // Esconde a mensagem
-                        
-                        window.vw.widget.translate(textoDecodificado);
-                    } else {
-                        attempts++;
-                        if (attempts >= maxAttempts) {
-                            clearInterval(interval);
-                            console.error("Erro: O utilizador não ativou o widget a tempo.");
-                            messageElement.innerHTML = '<h1>Tempo esgotado</h1><p>O widget não foi ativado. Por favor, recarregue a página e tente novamente.</p>';
-                        }
-                    }
-                }, 500);
+  <script>
+    (function initVLibras(){
+      try {
+        if (window.VLibras && typeof window.VLibras.Widget === 'function') {
+          new window.VLibras.Widget('https://vlibras.gov.br/app');
+          document.getElementById('status').innerText = 'VLibras carregado. Pronto.';
+        } else {
+          document.getElementById('status').innerText = 'Aguardando carregamento do plugin...';
+          var retries = 0;
+          var int = setInterval(function(){
+            if (window.VLibras && typeof window.VLibras.Widget === 'function') {
+              new window.VLibras.Widget('https://vlibras.gov.br/app');
+              document.getElementById('status').innerText = 'VLibras carregado. Pronto.';
+              clearInterval(int);
             } else {
-                console.log("Nenhum texto encontrado na URL.");
-                messageElement.innerHTML = '<h1>Bem-vindo</h1><p>Nenhum texto foi fornecido para tradução.</p>';
+              retries++;
+              document.getElementById('status').innerText = 'Aguardando plugin... (' + retries + ')';
+              if (retries > 20) {
+                clearInterval(int);
+                document.getElementById('status').innerText = 'Falha ao carregar plugin. Verifique conexão/console.';
+              }
             }
-        };
-    </script>
+          }, 500);
+        }
+      } catch(e){
+        console.error('Erro inicializando VLibras:', e);
+        document.getElementById('status').innerText = 'Erro inicializando VLibras (veja console).';
+      }
+    })();
+
+    function programmaticSelectAndTrigger(text) {
+      var old = document.getElementById('vlibras-temp');
+      if (old) old.remove();
+
+      var div = document.createElement('div');
+      div.id = 'vlibras-temp';
+      div.textContent = text || '';
+      document.body.appendChild(div);
+
+      // cria range e seleciona o conteúdo do div
+      var selection = window.getSelection();
+      selection.removeAllRanges();
+      var range = document.createRange();
+      range.selectNodeContents(div);
+      selection.addRange(range);
+
+      var mouseUp = new MouseEvent('mouseup', { bubbles: true, cancelable: true, view: window });
+      document.dispatchEvent(mouseUp);
+      document.dispatchEvent(new Event('selectionchange'));
+      document.getElementById('status').innerText = 'Texto selecionado — o widget deve reproduzir a tradução.';
+    }
+
+    document.getElementById('btnTranslate').addEventListener('click', function(){
+      var txt = document.getElementById('txt').value.trim();
+      if (!txt) {
+        alert('Digite algum texto para traduzir.');
+        return;
+      }
+      programmaticSelectAndTrigger(txt);
+    });
+
+    // Abre/fecha o widget (tenta clicar no botão de acesso criado pelo plugin)
+    document.getElementById('btnOpenWidget').addEventListener('click', function(){
+      // o plugin costuma criar um botão com atributo vw-access-button
+      var btn = document.querySelector('[vw-access-button]');
+      if (btn) {
+        try {
+          btn.click();
+        } catch(e){
+          // fallback: se for um elemento interno, podemos tentar simular evento
+          var evt = new MouseEvent('click', { bubbles: true, cancelable: true, view: window });
+          btn.dispatchEvent(evt);
+        }
+      } else {
+        alert('Botão do widget não encontrado. Aguarde o carregamento do plugin ou verifique o console.');
+      }
+    });
+
+    document.addEventListener('selectionchange', function(){
+      clearTimeout(window.__vlibras_clear_sel);
+      window.__vlibras_clear_sel = setTimeout(function(){
+        var s = window.getSelection();
+        if (s) s.removeAllRanges();
+      }, 6000);
+    });
+  </script>
 </body>
 </html>
-
