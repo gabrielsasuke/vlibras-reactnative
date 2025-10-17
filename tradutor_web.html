@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>VLibras Demo — Texto para Libras</title>
+  <title>VLibras — Tradutor para Libras</title>
   <style>
     * {
       margin: 0;
@@ -56,7 +56,7 @@
 
     textarea {
       width: 100%;
-      min-height: 150px;
+      min-height: 120px;
       padding: 16px;
       border: 2px solid #e1e8ed;
       border-radius: 12px;
@@ -64,13 +64,12 @@
       font-family: inherit;
       resize: vertical;
       background: #fafbfc;
-      transition: border-color 0.3s;
     }
 
-    textarea:focus {
-      outline: none;
-      border-color: #3498db;
-      background: white;
+    textarea:disabled {
+      background: #f8f9fa;
+      color: #6c757d;
+      border-color: #dee2e6;
     }
 
     .char-count {
@@ -90,12 +89,7 @@
       font-size: 18px;
       font-weight: 600;
       cursor: pointer;
-      transition: background 0.3s;
       margin-bottom: 12px;
-    }
-
-    .button:hover {
-      background: #2980b9;
     }
 
     .button:active {
@@ -106,8 +100,32 @@
       background: #95a5a6;
     }
 
-    .button-secondary:hover {
-      background: #7f8c8d;
+    .static-text {
+      background: #f8f9fa;
+      border: 2px solid #28a745;
+      border-radius: 12px;
+      padding: 20px;
+      margin-top: 20px;
+      min-height: 120px;
+      font-size: 16px;
+      line-height: 1.5;
+      user-select: text;
+    }
+
+    .static-text.highlight {
+      background: #fff3cd;
+      border-color: #ffc107;
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0% { border-color: #ffc107; }
+      50% { border-color: #3498db; }
+      100% { border-color: #ffc107; }
+    }
+
+    .hidden {
+      display: none;
     }
 
     .instructions {
@@ -138,70 +156,9 @@
       margin: 10px 0;
       border-radius: 8px;
       font-size: 14px;
-    }
-
-    .status.loading {
-      background: #fff3cd;
-      color: #856404;
-      border: 1px solid #ffeaa7;
-    }
-
-    .status.success {
       background: #d1ecf1;
       color: #0c5460;
       border: 1px solid #bee5eb;
-    }
-
-    .status.error {
-      background: #f8d7da;
-      color: #721c24;
-      border: 1px solid #f5c6cb;
-    }
-
-    .translation-area {
-      background: #f8f9fa;
-      border: 2px dashed #bdc3c7;
-      border-radius: 12px;
-      padding: 20px;
-      margin-top: 20px;
-      min-height: 120px;
-      font-size: 16px;
-      line-height: 1.5;
-      user-select: text;
-      cursor: text;
-    }
-
-    .translation-area.highlight {
-      background: #fff3cd;
-      border-color: #ffc107;
-      animation: pulse 2s infinite;
-    }
-
-    @keyframes pulse {
-      0% { border-color: #ffc107; }
-      50% { border-color: #3498db; }
-      100% { border-color: #ffc107;
-      }
-    }
-
-    .hidden {
-      display: none;
-    }
-
-    .spinner {
-      border: 3px solid #f3f3f3;
-      border-top: 3px solid #3498db;
-      border-radius: 50%;
-      width: 20px;
-      height: 20px;
-      animation: spin 1s linear infinite;
-      display: inline-block;
-      margin-right: 10px;
-    }
-
-    @keyframes spin {
-      0% { transform: rotate(0deg); }
-      100% { transform: rotate(360deg); }
     }
   </style>
 </head>
@@ -218,36 +175,34 @@
           id="textInput" 
           placeholder="Digite ou cole aqui o texto que deseja traduzir para Libras..."
           maxlength="500"
-        >Olá! Este é um teste de tradução para Libras usando o widget VLibras. Como você está?</textarea>
+        >Olá! Como você está? Este é um teste do tradutor para Libras.</textarea>
         <div class="char-count">
           <span id="charCount">0</span>/500 caracteres
         </div>
       </div>
 
-      <button id="translateBtn" class="button">
-        <span id="btnText">👆 Traduzir para Libras</span>
-        <span id="btnLoading" class="hidden">
-          <div class="spinner"></div>Processando...
-        </span>
+      <button id="generateBtn" class="button">
+        🔒 Travar texto e gerar bloco para tradução
       </button>
 
-      <div id="statusArea" class="status loading">
-        Carregando VLibras...
+      <div id="statusArea" class="status">
+        VLibras carregado. Digite seu texto e clique no botão acima.
       </div>
 
-      <div id="translationArea" class="translation-area hidden">
-        O texto traduzido aparecerá aqui. Selecione este texto com o dedo e clique no botão do VLibras.
+      <div id="staticText" class="static-text hidden">
       </div>
 
       <div class="instructions">
         <h3>📋 Como usar:</h3>
         <ol>
-          <li>Digite seu texto acima</li>
-          <li>Clique em "Traduzir para Libras"</li>
-          <li>Selecione o texto na área abaixo com o dedo (toque longo e arraste)</li>
-          <li>Clique no botão flutuante do VLibras (bonequinho no canto da tela)</li>
-          <li>Aguarde a tradução em Libras 3D</li>
+          <li>Digite ou cole seu texto na área acima</li>
+          <li>Clique em "Travar texto e gerar bloco para tradução"</li>
+          <li>O texto ficará travado e aparecerá em um bloco verde abaixo</li>
+          <li>Toque no texto verde para selecioná-lo</li>
+          <li>Clique no botão flutuante do VLibras (bonequinho)</li>
+          <li>A tradução em Libras 3D começará automaticamente</li>
         </ol>
+        <p><strong>Dica:</strong> Toque longo no texto verde e arraste para selecionar tudo</p>
       </div>
     </div>
   </div>
@@ -262,15 +217,10 @@
   <script src="https://vlibras.gov.br/app/vlibras-plugin.js"></script>
   <script>
     const textInput = document.getElementById('textInput');
-    const translateBtn = document.getElementById('translateBtn');
-    const btnText = document.getElementById('btnText');
-    const btnLoading = document.getElementById('btnLoading');
+    const generateBtn = document.getElementById('generateBtn');
     const statusArea = document.getElementById('statusArea');
-    const translationArea = document.getElementById('translationArea');
+    const staticText = document.getElementById('staticText');
     const charCount = document.getElementById('charCount');
-
-    let vlibrasLoaded = false;
-    let currentText = '';
 
     document.addEventListener('DOMContentLoaded', function() {
       updateCharCount();
@@ -282,25 +232,17 @@
     function updateCharCount() {
       const count = textInput.value.length;
       charCount.textContent = count;
-      charCount.style.color = count > 450 ? '#e74c3c' : '#95a5a6';
     }
 
     function initVLibras() {
       if (window.VLibras && typeof window.VLibras.Widget === 'function') {
-        try {
-          new window.VLibras.Widget('https://vlibras.gov.br/app');
-          vlibrasLoaded = true;
-          updateStatus('success', '✅ VLibras carregado! Pronto para traduzir.');
-        } catch (error) {
-          console.error('Erro ao inicializar VLibras:', error);
-          updateStatus('error', '❌ Erro ao carregar VLibras. Recarregue a página.');
-        }
+        new window.VLibras.Widget('https://vlibras.gov.br/app');
       } else {
-        setTimeout(initVLibras, 1000);
+        setTimeout(initVLibras, 500);
       }
     }
 
-    translateBtn.addEventListener('click', function() {
+    generateBtn.addEventListener('click', function() {
       const text = textInput.value.trim();
       
       if (!text) {
@@ -309,76 +251,42 @@
         return;
       }
 
-      if (!vlibrasLoaded) {
-        alert('Aguarde o VLibras carregar completamente.');
-        return;
-      }
+      textInput.disabled = true;
+      staticText.textContent = text;
+      staticText.classList.remove('hidden');
+      staticText.classList.add('highlight');
+      
+      statusArea.textContent = '✅ Texto travado! Toque no texto verde acima para selecionar e depois clique no botão do VLibras.';
+      
+      generateBtn.textContent = '🔓 Digite novo texto';
+      generateBtn.style.background = '#95a5a6';
 
-      currentText = text;
-      showTranslationArea(text);
-    });
-
-    function showTranslationArea(text) {
-      setButtonLoading(true);
-      updateStatus('loading', '⏳ Preparando tradução...');
+      staticText.scrollIntoView({ behavior: 'smooth', block: 'center' });
 
       setTimeout(() => {
-        translationArea.textContent = text;
-        translationArea.classList.remove('hidden');
-        
-        translationArea.classList.add('highlight');
-        
-        updateStatus('success', '✅ Texto pronto! Selecione o texto acima com o dedo e clique no botão do VLibras.');
-        setButtonLoading(false);
-
-        translationArea.scrollIntoView({ behavior: 'smooth', block: 'center' });
-
-        setTimeout(() => {
-          translationArea.classList.remove('highlight');
-        }, 3000);
-      }, 1000);
-    }
-
-    function setButtonLoading(loading) {
-      if (loading) {
-        btnText.classList.add('hidden');
-        btnLoading.classList.remove('hidden');
-        translateBtn.disabled = true;
-      } else {
-        btnText.classList.remove('hidden');
-        btnLoading.classList.add('hidden');
-        translateBtn.disabled = false;
-      }
-    }
-
-    function updateStatus(type, message) {
-      statusArea.textContent = message;
-      statusArea.className = 'status ' + type;
-    }
-
-    let checkCount = 0;
-    const checkVLibras = setInterval(() => {
-      if (document.querySelector('[vw-access-button]')) {
-        vlibrasLoaded = true;
-        updateStatus('success', '✅ VLibras carregado! Pronto para traduzir.');
-        clearInterval(checkVLibras);
-      }
-      checkCount++;
-      if (checkCount > 10) {
-        clearInterval(checkVLibras);
-        updateStatus('error', '⚠️ VLibras não carregou. Verifique sua conexão.');
-      }
-    }, 1000);
-
-    translationArea.addEventListener('touchstart', function() {
-      this.classList.add('highlight');
+        staticText.classList.remove('highlight');
+      }, 4000);
     });
 
-    translationArea.addEventListener('touchend', function() {
+    staticText.addEventListener('click', function() {
+      const selection = window.getSelection();
+      const range = document.createRange();
+      range.selectNodeContents(this);
+      selection.removeAllRanges();
+      selection.addRange(range);
+      
+      this.classList.add('highlight');
       setTimeout(() => this.classList.remove('highlight'), 2000);
     });
 
-    textInput.focus();
+    generateBtn.addEventListener('dblclick', function() {
+      textInput.disabled = false;
+      staticText.classList.add('hidden');
+      generateBtn.textContent = '🔒 Travar texto e gerar bloco para tradução';
+      generateBtn.style.background = '#3498db';
+      statusArea.textContent = 'VLibras carregado. Digite seu texto e clique no botão acima.';
+      textInput.focus();
+    });
   </script>
 </body>
 </html>
