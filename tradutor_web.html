@@ -142,8 +142,7 @@
 <body>
   <div class="container">
     <div class="header">
-      <h1>📝 Tradutor para Libras</h1>
-      <p>Digite seu texto e traduza para Língua Brasileira de Sinais</p>
+      <h1>Tradutor para Libras</h1>
     </div>
 
     <div class="card">
@@ -159,7 +158,7 @@
       </div>
 
       <button id="toggleBtn" class="button button-lock">
-        🔒 Travar texto para tradução
+        Travar texto para tradução
       </button>
 
       <div id="statusArea" class="status">
@@ -223,9 +222,9 @@
         staticText.classList.remove('hidden');
         staticText.classList.add('highlight');
         
-        statusArea.textContent = '✅ Texto travado! Toque no texto verde para selecionar e clique no VLibras.';
+        statusArea.textContent = 'Texto travado! Toque no texto verde para selecionar e clique no VLibras.';
         
-        toggleBtn.textContent = '🔓 Liberar texto para editar';
+        toggleBtn.textContent = 'Liberar texto para editar';
         toggleBtn.className = 'button button-unlock';
         
         isLocked = true;
@@ -238,7 +237,7 @@
       } else {
         textInput.disabled = false;
         staticText.classList.add('hidden');
-        toggleBtn.textContent = '🔒 Travar texto para tradução';
+        toggleBtn.textContent = 'Travar texto para tradução';
         toggleBtn.className = 'button button-lock';
         statusArea.textContent = 'VLibras carregado. Digite seu texto e clique para travar.';
         textInput.focus();
