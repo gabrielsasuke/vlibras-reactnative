@@ -127,28 +127,20 @@
     }
 
     function fallbackSelectAndOpen(){
-      try {
-        const sel = window.getSelection();
-        sel.removeAllRanges();
-        const range = document.createRange();
-        range.selectNodeContents(mirror);
-        sel.addRange(range);
-      } catch(err){
-        console.warn('Erro ao selecionar mirror:', err);
-      }
-
       const accessBtn = document.querySelector('[vw-access-button], .vw-access-button, .vw-accessButton, .vw-button, .vlibras-access');
+
       if (accessBtn) {
         try {
           accessBtn.click();
-          status.textContent = 'Conteúdo selecionado. Abra o avatar e clique em reproduzir se necessário.';
+          status.textContent = 'Abra o avatar e selecione o texto manualmente para reproduzir.';
         } catch(err){
           console.warn('Não foi possível clicar no botão do widget:', err);
         }
       } else {
-        status.textContent = 'API indisponível — selecione o texto no painel VLibras manualmente.';
+        status.textContent = 'API indisponível — selecione o texto manualmente no painel VLibras.';
       }
     }
+
 
     function syncToVlibras(){
       const content = textInput.value.trim();
