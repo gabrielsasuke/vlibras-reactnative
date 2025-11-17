@@ -4,16 +4,75 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>VLibras — Tradutor para Libras</title>
-  <style>
-    body{font-family:system-ui,Segoe UI,Roboto,sans-serif;background:#f0f2f5;padding:20px}
-    .card{background:#fff;padding:20px;border-radius:12px;max-width:800px;margin:0 auto;box-shadow:0 6px 18px rgba(0,0,0,.08)}
-    textarea{width:100%;min-height:150px;padding:12px;border-radius:10px;border:2px solid #e1e8ed;resize:vertical}
-    .char-count{ text-align:right;color:#777;font-size:14px;margin-top:6px }
-    .status{margin-top:12px;padding:10px;background:#e8f7fb;border-radius:8px;color:#055}
-    #mirror{position:relative;white-space:pre-wrap;word-break:break-word;visibility:visible;outline:none;
-      border-radius:8px;padding:12px;margin-top:12px;background:#f8f9fa;border:2px dashed #e1e8ed;min-height:120px;}
-    .hidden{display:none}
-  </style>
+<style>
+    * {
+        box-sizing: border-box;
+    }
+
+    body {
+        font-family: system-ui, Segoe UI, Roboto, sans-serif;
+        background: #f0f2f5;
+        padding: 20px;
+    }
+
+    .card {
+        background: #fff;
+        padding: 20px;
+        border-radius: 12px;
+        max-width: 800px;
+        margin: 0 auto;
+        box-shadow: 0 6px 18px rgba(0,0,0,.08);
+        width: 100%;
+    }
+
+    /* Corrigido: nunca ultrapassa o card */
+    textarea {
+        width: 100%;
+        max-width: 100%;
+        min-height: 150px;
+        padding: 12px;
+        border-radius: 10px;
+        border: 2px solid #e1e8ed;
+        resize: vertical;
+        display: block;
+    }
+
+    .char-count {
+        text-align: right;
+        color: #777;
+        font-size: 14px;
+        margin-top: 6px;
+    }
+
+    /* Corrigido: antes estava estourando para fora */
+    #mirror {
+        width: 100%;
+        max-width: 100%;
+        position: relative;
+        white-space: pre-wrap;
+        word-break: break-word;
+        outline: none;
+        border-radius: 8px;
+        padding: 12px;
+        margin-top: 12px;
+        background: #f8f9fa;
+        border: 1.5px dashed #e1e8ed;
+        min-height: 120px;
+        overflow-wrap: break-word;
+    }
+
+    .status {
+        margin-top: 12px;
+        padding: 10px;
+        background: #e8f7fb;
+        border-radius: 8px;
+        color: #055;
+    }
+
+    .hidden {
+        display: none;
+    }
+</style>
 </head>
 <body>
   <div class="card">

@@ -314,6 +314,7 @@ const styles = StyleSheet.create({
     width: '100%',
     height: 80,
   },
+
   statusText: {
     fontSize: 16,
     color: '#333',
