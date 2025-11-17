@@ -4,6 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>VLibras — Tradutor para Libras</title>
+
   <style>
     * {
       margin: 0;
@@ -49,14 +50,9 @@
       margin-bottom: 20px;
     }
 
-    .textarea-container {
-      position: relative;
-      margin-bottom: 20px;
-    }
-
     textarea {
       width: 100%;
-      min-height: 120px;
+      min-height: 150px;
       padding: 16px;
       border: 2px solid #e1e8ed;
       border-radius: 12px;
@@ -66,65 +62,11 @@
       background: #fafbfc;
     }
 
-    textarea:disabled {
-      background: #f8f9fa;
-      color: #6c757d;
-      border-color: #dee2e6;
-    }
-
     .char-count {
       text-align: right;
       font-size: 14px;
       color: #95a5a6;
       margin-top: 8px;
-    }
-
-    .button {
-      width: 100%;
-      padding: 16px;
-      color: white;
-      border: none;
-      border-radius: 12px;
-      font-size: 18px;
-      font-weight: 600;
-      cursor: pointer;
-      margin-bottom: 12px;
-    }
-
-    .button-lock {
-      background: #3498db;
-    }
-
-    .button-unlock {
-      background: #28a745;
-    }
-
-    .static-text {
-      background: #f8f9fa;
-      border: 2px solid #28a745;
-      border-radius: 12px;
-      padding: 20px;
-      margin-top: 20px;
-      min-height: 120px;
-      font-size: 16px;
-      line-height: 1.5;
-      user-select: text;
-    }
-
-    .static-text.highlight {
-      background: #fff3cd;
-      border-color: #ffc107;
-      animation: pulse 2s infinite;
-    }
-
-    @keyframes pulse {
-      0% { border-color: #ffc107; }
-      50% { border-color: #3498db; }
-      100% { border-color: #ffc107; }
-    }
-
-    .hidden {
-      display: none;
     }
 
     .status {
@@ -139,122 +81,84 @@
     }
   </style>
 </head>
+
 <body>
   <div class="container">
     <div class="header">
       <h1>Tradutor para Libras</h1>
+      <p>Digite o texto e clique no avatar do VLibras para traduzir.</p>
     </div>
 
     <div class="card">
-      <div class="textarea-container">
-        <textarea 
-          id="textInput" 
-          placeholder="Digite ou cole aqui o texto que deseja traduzir para Libras..."
-          maxlength="500"
-        >Teste.</textarea>
-        <div class="char-count">
-          <span id="charCount">0</span>/500 caracteres
-        </div>
-      </div>
+      <textarea 
+        id="textInput" 
+        placeholder="Digite ou cole aqui o texto para tradução..."
+        maxlength="500"
+      ></textarea>
 
-      <button id="toggleBtn" class="button button-lock">
-        Travar texto para tradução
-      </button>
+      <div class="char-count">
+        <span id="charCount">0</span>/500 caracteres
+      </div>
 
       <div id="statusArea" class="status">
-        VLibras carregado. Digite seu texto e clique para travar.
-      </div>
-
-      <div id="staticText" class="static-text hidden">
+        VLibras carregado. Aguarde alguns instantes se o avatar ainda estiver inicializando.
       </div>
     </div>
   </div>
 
+  <!-- VLibras: Plugin + API -->
+  <script src="https://vlibras.gov.br/app/vlibras-plugin.js"></script>
+  <script src="https://vlibras.gov.br/app/vlibras-api.js"></script>
+
+  <script>
+    const textInput = document.getElementById('textInput');
+    const charCount = document.getElementById('charCount');
+    const statusArea = document.getElementById('statusArea');
+
+    /* --- 1. Atualiza contador --- */
+    textInput.addEventListener('input', () => {
+      charCount.textContent = textInput.value.length;
+      debouncedTranslate();
+    });
+
+    /* --- 2. Inicializa VLibras --- */
+    document.addEventListener('DOMContentLoaded', () => {
+      new window.VLibras.Widget('https://vlibras.gov.br/app');
+    });
+
+    /* --- 3. Debounce para evitar requisições demais --- */
+    function debounce(fn, delay) {
+      let timer;
+      return function () {
+        clearTimeout(timer);
+        timer = setTimeout(() => fn.apply(this, arguments), delay);
+      };
+    }
+
+    /* --- 4. Envia texto automaticamente para o VLibras --- */
+    function translateText() {
+      const content = textInput.value.trim();
+
+      if (!content) return;
+
+      // Aguarda API carregar
+      if (window.VLibras && window.VLibras.api) {
+        window.VLibras.api.translate(content);
+        statusArea.textContent = "Texto sincronizado! Clique no avatar para traduzir.";
+      } else {
+        statusArea.textContent = "Aguardando VLibras carregar...";
+      }
+    }
+
+    const debouncedTranslate = debounce(translateText, 800);
+  </script>
+
+  <!-- Estrutura do plugin -->
   <div vw class="enabled">
     <div vw-access-button class="active"></div>
     <div vw-plugin-wrapper>
       <div class="vw-plugin-top-wrapper"></div>
     </div>
   </div>
-
-  <script src="https://vlibras.gov.br/app/vlibras-plugin.js"></script>
-  <script>
-    const textInput = document.getElementById('textInput');
-    const toggleBtn = document.getElementById('toggleBtn');
-    const statusArea = document.getElementById('statusArea');
-    const staticText = document.getElementById('staticText');
-    const charCount = document.getElementById('charCount');
-
-    let isLocked = false;
-
-    document.addEventListener('DOMContentLoaded', function() {
-      updateCharCount();
-      initVLibras();
-    });
-
-    textInput.addEventListener('input', updateCharCount);
-
-    function updateCharCount() {
-      const count = textInput.value.length;
-      charCount.textContent = count;
-    }
-
-    function initVLibras() {
-      if (window.VLibras && typeof window.VLibras.Widget === 'function') {
-        new window.VLibras.Widget('https://vlibras.gov.br/app');
-      } else {
-        setTimeout(initVLibras, 500);
-      }
-    }
-
-    toggleBtn.addEventListener('click', function() {
-      if (!isLocked) {
-        const text = textInput.value.trim();
-        
-        if (!text) {
-          alert('Por favor, digite algum texto para traduzir.');
-          textInput.focus();
-          return;
-        }
-
-        textInput.disabled = true;
-        staticText.textContent = text;
-        staticText.classList.remove('hidden');
-        staticText.classList.add('highlight');
-        
-        statusArea.textContent = 'Texto travado! Toque no texto verde para selecionar e clique no VLibras.';
-        
-        toggleBtn.textContent = 'Liberar texto para editar';
-        toggleBtn.className = 'button button-unlock';
-        
-        isLocked = true;
-
-        staticText.scrollIntoView({ behavior: 'smooth', block: 'center' });
-
-        setTimeout(() => {
-          staticText.classList.remove('highlight');
-        }, 4000);
-      } else {
-        textInput.disabled = false;
-        staticText.classList.add('hidden');
-        toggleBtn.textContent = 'Travar texto para tradução';
-        toggleBtn.className = 'button button-lock';
-        statusArea.textContent = 'VLibras carregado. Digite seu texto e clique para travar.';
-        textInput.focus();
-        isLocked = false;
-      }
-    });
-
-    staticText.addEventListener('click', function() {
-      const selection = window.getSelection();
-      const range = document.createRange();
-      range.selectNodeContents(this);
-      selection.removeAllRanges();
-      selection.addRange(range);
-      
-      this.classList.add('highlight');
-      setTimeout(() => this.classList.remove('highlight'), 2000);
-    });
-  </script>
 </body>
 </html>

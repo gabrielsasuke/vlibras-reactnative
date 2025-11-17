@@ -105,7 +105,6 @@ export default function App() {
     }
   }
 
-  // --- LÓGICA FINAL: Abrir o tradutor externo na nossa própria página ---
   async function handleTranslateToLibras() {
     if (!textToTranslate.trim()) {
       Alert.alert("Texto Vazio", "Por favor, insira um texto para traduzir.");
