@@ -5,166 +5,168 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>VLibras — Tradutor para Libras</title>
 
-  <style>
+<style>
     * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
+        box-sizing: border-box;
     }
 
     body {
-      background: #111;
-      color: #eee;
-      font-family: Arial, sans-serif;
-      padding: 16px;
+        font-family: system-ui, Segoe UI, Roboto, sans-serif;
+        background: #f0f2f5;
+        padding: 20px;
     }
 
-    h1 {
-      margin-bottom: 12px;
-    }
-
-    #wrapper {
-      display: flex;
-      flex-direction: column;
-      gap: 16px;
+    .card {
+        background: #fff;
+        padding: 20px;
+        border-radius: 12px;
+        max-width: 800px;
+        margin: 0 auto;
+        box-shadow: 0 6px 18px rgba(0,0,0,.08);
+        width: 100%;
     }
 
     textarea {
-      width: 100%;
-      height: 160px;
-      border-radius: 8px;
-      border: none;
-      padding: 12px;
-      font-size: 16px;
-      outline: none;
-      resize: vertical;
+        width: 100%;
+        max-width: 100%;
+        min-height: 150px;
+        padding: 12px;
+        border-radius: 10px;
+        border: 2px solid #e1e8ed;
+        resize: vertical;
+        display: block;
+    }
+
+    .char-count {
+        text-align: right;
+        color: #777;
+        font-size: 14px;
+        margin-top: 6px;
     }
 
     #mirror {
-      background: #222;
-      padding: 12px;
-      min-height: 80px;
-      border-radius: 8px;
-      white-space: pre-wrap;
+        width: 100%;
+        max-width: 100%;
+        position: relative;
+        white-space: pre-wrap;
+        word-break: break-word;
+        outline: none;
+        border-radius: 8px;
+        padding: 12px;
+        margin-top: 12px;
+        background: #f8f9fa;
+        border: 1.5px dashed #e1e8ed;
+        min-height: 120px;
+        overflow-wrap: break-word;
     }
 
-    #charCount {
-      font-size: 14px;
-      opacity: 0.7;
+    .status {
+        margin-top: 12px;
+        padding: 10px;
+        background: #e8f7fb;
+        border-radius: 8px;
+        color: #055;
     }
-
-    #status {
-      margin-top: 12px;
-      font-size: 15px;
-      color: #0af;
-    }
-  </style>
-
-  <script defer src="https://vlibras.gov.br/app/vlibras-plugin.js"></script>
+</style>
 </head>
-
 <body>
-  <h1>Tradutor VLibras (Automático)</h1>
 
-  <div id="wrapper">
+  <div class="card">
+    <h2>Tradutor para Libras</h2>
+    <textarea id="textInput" maxlength="1000" placeholder="Digite aqui..."></textarea>
+    <div class="char-count"><span id="charCount">0</span>/1000</div>
 
-    <textarea id="textInput" placeholder="Digite algo ou envie pelo aplicativo..."></textarea>
+    <div id="mirror" aria-hidden="false" tabindex="-1" role="region" aria-label="Texto para VLibras (fallback)">
+    </div>
 
-    <div id="mirror"></div>
-
-    <div id="charCount">0 caracteres</div>
-
-    <div id="status">Carregando...</div>
-
+    <div id="status" class="status">Inicializando VLibras...</div>
   </div>
 
+  <div vw class="enabled">
+    <div vw-access-button class="active"></div>
+    <div vw-plugin-wrapper>
+      <div class="vw-plugin-top-wrapper"></div>
+    </div>
+  </div>
+
+  <!-- 🔥 Carga correta do plugin -->
+  <script src="https://vlibras.gov.br/app/vlibras-plugin.js"></script>
+
   <script>
-    const textInput = document.getElementById("textInput");
-    const mirror = document.getElementById("mirror");
-    const charCount = document.getElementById("charCount");
-    const status = document.getElementById("status");
+    const textInput = document.getElementById('textInput');
+    const mirror = document.getElementById('mirror');
+    const charCount = document.getElementById('charCount');
+    const status = document.getElementById('status');
 
-    async function syncToVlibras() {
-      const text = textInput.value.trim();
+    let debounceTimer;
+    const DEBOUNCE_MS = 800;
 
-      if (!text) {
-        status.textContent = "Nenhum texto para traduzir.";
+    function debounce(fn, t=DEBOUNCE_MS){
+      return function(...args){
+        clearTimeout(debounceTimer);
+        debounceTimer = setTimeout(()=> fn.apply(this,args), t);
+      };
+    }
+
+    function onInput(){
+      charCount.textContent = textInput.value.length;
+      mirror.textContent = textInput.value || ' ';
+      debouncedSync();
+    }
+
+    textInput.addEventListener('input', onInput);
+
+    function tryApiTranslate(content){
+      if (window.VLibras && window.VLibras.api && typeof window.VLibras.api.translate === 'function') {
+        try {
+          window.VLibras.api.translate(content);
+          status.textContent = 'Texto enviado à API do VLibras. Clique no avatar para reproduzir.';
+          return true;
+        } catch(err){
+          console.warn('VLibras.api.translate falhou:', err);
+        }
+      }
+      return false;
+    }
+
+    function fallbackSelectAndOpen(){
+      status.textContent = 'API indisponível — clique no avatar e selecione o texto manualmente.';
+    }
+
+    function syncToVlibras(){
+      const content = textInput.value.trim();
+      if (!content) {
+        status.textContent = 'Digite algo para traduzir.';
         return;
       }
 
-      status.textContent = "Traduzindo via API VLibras...";
+      const apiOk = tryApiTranslate(content);
+      if (apiOk) return;
 
-      try {
-        const response = await fetch(
-          "https://traducao2.vlibras.gov.br/translate",
-          {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ text })
-          }
-        );
-
-        if (response.ok) {
-          const data = await response.json();
-          status.textContent = "Tradução realizada pela API VLibras.";
-          console.log("API VLibras:", data);
-        } else {
-          throw new Error("API indisponível");
-        }
-      } catch (err) {
-        status.textContent = "API indisponível. Usando fallback (Avatar VLibras)...";
-
-        if (window.VLibras) {
-          try {
-            const widget = new window.VLibras.Widget("https://vlibras.gov.br/app");
-            setTimeout(() => {
-              widget.translate(text);
-              status.textContent = "Tradução enviada ao widget VLibras.";
-            }, 1200);
-          } catch (e) {
-            status.textContent = "Erro ao usar o widget VLibras.";
-          }
-        }
-      }
+      fallbackSelectAndOpen();
     }
 
-    function getTextoFromURL() {
-      const params = new URLSearchParams(window.location.search);
-      return params.get("texto") || "";
-    }
+    const debouncedSync = debounce(syncToVlibras, DEBOUNCE_MS);
 
-    document.addEventListener("DOMContentLoaded", () => {
+    document.addEventListener('DOMContentLoaded', () => {
       try {
-        if (window.VLibras && typeof window.VLibras.Widget === "function") {
-          new window.VLibras.Widget("https://vlibras.gov.br/app");
-        }
+        new window.VLibras.Widget('https://vlibras.gov.br/app');
+
+        status.textContent = 'VLibras carregado. Digite algo para traduzir.';
       } catch (err) {
-        console.warn("Erro ao inicializar VLibras Widget:", err);
+        console.warn('Erro ao inicializar VLibras:', err);
+        status.textContent = 'Erro ao carregar VLibras.';
       }
 
-      // mantém a página inicial consistente
-      mirror.textContent = " ";
-      charCount.textContent = "0 caracteres";
-      status.textContent = "Pronto.";
-
-      const textoRecebido = getTextoFromURL();
-
-      if (textoRecebido) {
-        textInput.value = textoRecebido;
-        mirror.textContent = textoRecebido;
-        charCount.textContent = `${textoRecebido.length} caracteres`;
-        status.textContent = "Texto recebido do app. Traduzindo...";
-
-        setTimeout(() => {
-          syncToVlibras();
-        }, 1200);
-      }
+      mirror.textContent = textInput.value || ' ';
+      charCount.textContent = textInput.value.length;
     });
 
-    textInput.addEventListener("input", () => {
-      mirror.textContent = textInput.value;
-      charCount.textContent = `${textInput.value.length} caracteres`;
-    });
+    window.forceTranslateFallback = function(){
+      mirror.textContent = textInput.value || ' ';
+      fallbackSelectAndOpen();
+    };
   </script>
+
 </body>
 </html>
