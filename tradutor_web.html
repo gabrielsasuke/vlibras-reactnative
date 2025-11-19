@@ -6,10 +6,7 @@
   <title>VLibras — Tradutor para Libras</title>
 
 <style>
-    * {
-        box-sizing: border-box;
-    }
-
+    * { box-sizing: border-box; }
     body {
         font-family: system-ui, Segoe UI, Roboto, sans-serif;
         background: #f0f2f5;
@@ -47,17 +44,14 @@
     #mirror {
         width: 100%;
         max-width: 100%;
-        position: relative;
         white-space: pre-wrap;
         word-break: break-word;
-        outline: none;
+        background: #f8f9fa;
+        border: 1.5px dashed #e1e8ed;
         border-radius: 8px;
         padding: 12px;
         margin-top: 12px;
-        background: #f8f9fa;
-        border: 1.5px dashed #e1e8ed;
         min-height: 120px;
-        overflow-wrap: break-word;
     }
 
     .status {
@@ -69,19 +63,22 @@
     }
 </style>
 </head>
+
 <body>
 
   <div class="card">
     <h2>Tradutor para Libras</h2>
+
     <textarea id="textInput" maxlength="1000" placeholder="Digite aqui..."></textarea>
+
     <div class="char-count"><span id="charCount">0</span>/1000</div>
 
-    <div id="mirror" aria-hidden="false" tabindex="-1" role="region" aria-label="Texto para VLibras (fallback)">
-    </div>
+    <div id="mirror"></div>
 
     <div id="status" class="status">Inicializando VLibras...</div>
   </div>
 
+  <!-- Bloco obrigatório do VLibras -->
   <div vw class="enabled">
     <div vw-access-button class="active"></div>
     <div vw-plugin-wrapper>
@@ -89,83 +86,87 @@
     </div>
   </div>
 
-  <!-- 🔥 Carga correta do plugin -->
   <script src="https://vlibras.gov.br/app/vlibras-plugin.js"></script>
 
   <script>
-    const textInput = document.getElementById('textInput');
-    const mirror = document.getElementById('mirror');
-    const charCount = document.getElementById('charCount');
-    const status = document.getElementById('status');
+    const textInput = document.getElementById("textInput");
+    const mirror = document.getElementById("mirror");
+    const charCount = document.getElementById("charCount");
+    const status = document.getElementById("status");
 
-    let debounceTimer;
-    const DEBOUNCE_MS = 800;
+    let initialText = "";
 
-    function debounce(fn, t=DEBOUNCE_MS){
-      return function(...args){
-        clearTimeout(debounceTimer);
-        debounceTimer = setTimeout(()=> fn.apply(this,args), t);
-      };
+    function loadTextFromURL() {
+      const params = new URLSearchParams(window.location.search);
+      const texto = params.get("texto");
+
+      if (texto) {
+        initialText = decodeURIComponent(texto);
+        textInput.value = initialText;
+        mirror.textContent = initialText;
+        charCount.textContent = initialText.length;
+      }
     }
 
-    function onInput(){
-      charCount.textContent = textInput.value.length;
-      mirror.textContent = textInput.value || ' ';
+    textInput.addEventListener("input", () => {
+      const text = textInput.value;
+      mirror.textContent = text;
+      charCount.textContent = text.length;
       debouncedSync();
-    }
+    });
 
-    textInput.addEventListener('input', onInput);
-
-    function tryApiTranslate(content){
-      if (window.VLibras && window.VLibras.api && typeof window.VLibras.api.translate === 'function') {
+    function tryTranslate(content) {
+      if (window.VLibras?.api?.translate) {
         try {
           window.VLibras.api.translate(content);
-          status.textContent = 'Texto enviado à API do VLibras. Clique no avatar para reproduzir.';
+          status.textContent = "Texto enviado ao VLibras.";
           return true;
-        } catch(err){
-          console.warn('VLibras.api.translate falhou:', err);
+        } catch (err) {
+          console.warn("VLibras API falhou:", err);
         }
       }
       return false;
     }
 
-    function fallbackSelectAndOpen(){
-      status.textContent = 'API indisponível — clique no avatar e selecione o texto manualmente.';
-    }
+    function syncToVLibras() {
+      const text = textInput.value.trim();
+      if (!text) return;
 
-    function syncToVlibras(){
-      const content = textInput.value.trim();
-      if (!content) {
-        status.textContent = 'Digite algo para traduzir.';
-        return;
+      if (!tryTranslate(text)) {
+        status.textContent =
+          "API indisponível — clique no avatar para selecionar e reproduzir.";
       }
-
-      const apiOk = tryApiTranslate(content);
-      if (apiOk) return;
-
-      fallbackSelectAndOpen();
     }
 
-    const debouncedSync = debounce(syncToVlibras, DEBOUNCE_MS);
+    function debounce(fn, ms = 800) {
+      let timer;
+      return (...args) => {
+        clearTimeout(timer);
+        timer = setTimeout(() => fn(...args), ms);
+      };
+    }
 
-    document.addEventListener('DOMContentLoaded', () => {
+    const debouncedSync = debounce(syncToVLibras);
+
+    document.addEventListener("DOMContentLoaded", () => {
+      loadTextFromURL();
+
       try {
-        new window.VLibras.Widget('https://vlibras.gov.br/app');
+        const widget = new window.VLibras.Widget("https://vlibras.gov.br/app");
 
-        status.textContent = 'VLibras carregado. Digite algo para traduzir.';
+        // Aguarda o avatar carregar (meio segundo)
+        setTimeout(() => {
+          if (initialText) {
+            tryTranslate(initialText);
+          }
+          status.textContent = "Pronto.";
+        }, 600);
+
       } catch (err) {
-        console.warn('Erro ao inicializar VLibras:', err);
-        status.textContent = 'Erro ao carregar VLibras.';
+        console.warn("Erro ao carregar VLibras:", err);
+        status.textContent = "Erro ao carregar VLibras.";
       }
-
-      mirror.textContent = textInput.value || ' ';
-      charCount.textContent = textInput.value.length;
     });
-
-    window.forceTranslateFallback = function(){
-      mirror.textContent = textInput.value || ' ';
-      fallbackSelectAndOpen();
-    };
   </script>
 
 </body>
