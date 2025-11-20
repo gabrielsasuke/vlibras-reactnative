@@ -78,7 +78,6 @@
     <div id="status" class="status">Inicializando VLibras...</div>
   </div>
 
-  <!-- Bloco obrigatório do VLibras -->
   <div vw class="enabled">
     <div vw-access-button class="active"></div>
     <div vw-plugin-wrapper>
@@ -154,7 +153,6 @@
       try {
         const widget = new window.VLibras.Widget("https://vlibras.gov.br/app");
 
-        // Aguarda o avatar carregar (meio segundo)
         setTimeout(() => {
           if (initialText) {
             tryTranslate(initialText);
