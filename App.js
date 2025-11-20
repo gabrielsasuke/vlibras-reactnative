@@ -110,10 +110,7 @@ export default function App() {
       Alert.alert("Texto Vazio", "Por favor, insira um texto para traduzir.");
       return;
     }
-
-    // Codifica o texto para ser seguro para uma URL
     const encodedText = encodeURIComponent(textToTranslate);
-    // Constrói a URL para a nossa página, passando o texto como um parâmetro
     const url = `${TRANSLATOR_WEB_PAGE_URL}?texto=${encodedText}`;
 
     const supported = await Linking.canOpenURL(url);
